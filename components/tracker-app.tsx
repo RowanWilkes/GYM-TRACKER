@@ -148,7 +148,6 @@ export function TrackerApp() {
   }
 
   async function saveSet(exerciseId: string, rating: Rating) {
-    if (!userId) return;
     const draft = drafts[exerciseId] ?? { weight: "", reps: "", sets: "", error: "" };
     if (draft.weight === "" || draft.reps === "" || draft.sets === "") {
       updateDraft(exerciseId, { error: "Enter what you lifted first" });
@@ -162,24 +161,56 @@ export function TrackerApp() {
       return;
     }
 
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    if (userError || !user) {
+      console.error(userError ?? "No user");
+      updateDraft(exerciseId, { error: "Couldn't save" });
+      return;
+    }
+
+    const loggedAt = todayISO();
     const payload = {
-      user_id: userId,
+      user_id: user.id,
       exercise_id: exerciseId,
-      logged_at: today,
+      logged_at: loggedAt,
       weight_kg: weight,
       reps,
       sets,
       rating,
     };
 
+    setLogs((prev) => {
+      const index = prev.findIndex(
+        (row) => row.exercise_id === exerciseId && row.logged_at === loggedAt
+      );
+      if (index >= 0) {
+        const next = [...prev];
+        next[index] = { ...next[index], ...payload };
+        return next;
+      }
+      return [
+        ...prev,
+        {
+          id: `pending-${exerciseId}-${loggedAt}`,
+          ...payload,
+        },
+      ];
+    });
+    updateDraft(exerciseId, { error: "" });
+
     const { error: saveError } = await supabase
       .from("logs")
       .upsert(payload, { onConflict: "exercise_id,logged_at" });
     if (saveError) {
-      updateDraft(exerciseId, { error: saveError.message });
+      console.error(saveError);
+      updateDraft(exerciseId, { error: "Couldn't save" });
+      await refreshCurrentDay();
       return;
     }
-    updateDraft(exerciseId, { error: "" });
+
     await refreshCurrentDay();
   }
 

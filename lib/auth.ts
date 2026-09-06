@@ -2,12 +2,6 @@ import { supabase } from "@/lib/supabase";
 
 type RouterLike = { replace: (href: string) => void };
 
-export function getAuthCallbackUrl(): string {
-  const origin =
-    typeof window !== "undefined" ? window.location.origin : "http://127.0.0.1:43127";
-  return `${origin}/auth/callback`;
-}
-
 export async function routeAfterAuth(router: RouterLike): Promise<void> {
   const {
     data: { user },
@@ -46,7 +40,7 @@ export function isRateLimited(err: unknown): boolean {
   );
 }
 
-export function mapAuthError(err: unknown, context: "email" | "login" | "code"): string {
+export function mapAuthError(err: unknown, context: "login" | "signup"): string {
   const error = err as { message?: string; code?: string };
   const code = (error.code ?? "").toLowerCase();
   const text = (error.message ?? "").toLowerCase();
@@ -60,42 +54,34 @@ export function mapAuthError(err: unknown, context: "email" | "login" | "code"):
     return "Use a real email address. That one was rejected.";
   }
 
-  if (context === "login") {
-    if (
-      code === "user_not_found" ||
-      code === "otp_disabled" ||
-      blob.includes("user not found") ||
-      blob.includes("signups not allowed") ||
-      (blob.includes("signup") && blob.includes("disabled"))
-    ) {
-      return "No account with that email. Use Get started to create one.";
-    }
-  }
-
   if (isRateLimited(err)) {
-    if (context === "email" || context === "login") {
-      return "A code may already be on the way. Check your inbox (and spam), then enter it. Wait a minute before asking for another.";
-    }
-    return "Wait a minute before requesting another code.";
+    return "Too many attempts. Wait a minute and try again.";
   }
 
-  if (context === "code") {
-    if (blob.includes("expired")) {
-      return "That code expired. Request a new one.";
+  if (context === "login") {
+    if (blob.includes("email not confirmed") || code === "email_not_confirmed") {
+      return "Confirm your email before logging in, or turn off Confirm email in Supabase Auth settings.";
     }
     if (
-      blob.includes("invalid") ||
-      blob.includes("otp") ||
-      blob.includes("token") ||
-      blob.includes("wrong")
+      code === "invalid_credentials" ||
+      blob.includes("invalid login") ||
+      blob.includes("invalid credentials")
     ) {
-      return "That code is wrong. Try again.";
+      return "Invalid email or password.";
     }
+    return error.message || "Could not log in. Try again.";
   }
 
-  if (context === "email" || context === "login") {
-    return error.message || "Could not send a code. Try again.";
+  if (
+    code === "user_already_exists" ||
+    blob.includes("already registered") ||
+    blob.includes("already been registered")
+  ) {
+    return "That email already has an account. Log in instead.";
+  }
+  if (blob.includes("password") && (blob.includes("weak") || blob.includes("at least") || blob.includes("characters"))) {
+    return "Password must be at least 6 characters.";
   }
 
-  return error.message || "Something went wrong. Try again.";
+  return error.message || "Could not create an account. Try again.";
 }
