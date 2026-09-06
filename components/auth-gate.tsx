@@ -8,10 +8,12 @@ export function AuthGate({
   children,
   requireOnboarded = false,
   redirectIfOnboarded = false,
+  guestOnly = false,
 }: {
   children: React.ReactNode;
   requireOnboarded?: boolean;
   redirectIfOnboarded?: boolean;
+  guestOnly?: boolean;
 }) {
   const router = useRouter();
   const [ok, setOk] = useState(false);
@@ -21,6 +23,10 @@ export function AuthGate({
 
     async function run() {
       if (!hasSupabaseConfig()) {
+        if (guestOnly) {
+          setOk(true);
+          return;
+        }
         router.replace("/");
         return;
       }
@@ -29,6 +35,10 @@ export function AuthGate({
       } = await supabase.auth.getSession();
       if (cancelled) return;
       if (!session) {
+        if (guestOnly) {
+          setOk(true);
+          return;
+        }
         router.replace("/");
         return;
       }
@@ -38,6 +48,10 @@ export function AuthGate({
         .eq("id", session.user.id)
         .maybeSingle();
       if (cancelled) return;
+      if (guestOnly) {
+        router.replace(profile?.onboarded ? "/tracker" : "/onboarding");
+        return;
+      }
       if (requireOnboarded && !profile?.onboarded) {
         router.replace("/onboarding");
         return;
@@ -53,7 +67,7 @@ export function AuthGate({
     return () => {
       cancelled = true;
     };
-  }, [router, requireOnboarded, redirectIfOnboarded]);
+  }, [router, requireOnboarded, redirectIfOnboarded, guestOnly]);
 
   if (!ok) {
     return (

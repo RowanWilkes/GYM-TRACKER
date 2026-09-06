@@ -3,15 +3,16 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { hasSupabaseConfig, supabase } from "@/lib/supabase";
-import { isRateLimited, mapAuthError, routeAfterAuth } from "@/lib/auth";
+import { isRateLimited, mapAuthError, routeAfterAuth, getAuthCallbackUrl } from "@/lib/auth";
 
-type Step = "landing" | "code";
+type Step = "landing" | "check-email";
+type Intent = "signup" | "login";
 
 export function LoginFlow() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("landing");
+  const [intent, setIntent] = useState<Intent>("signup");
   const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
   const [error, setError] = useState("");
@@ -42,18 +43,20 @@ export function LoginFlow() {
     };
   }, [router]);
 
-  async function sendCode(nextEmail: string) {
+  async function sendLink(nextEmail: string, nextIntent: Intent) {
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: nextEmail,
-      options: { shouldCreateUser: true },
+      options: {
+        shouldCreateUser: nextIntent === "signup",
+        emailRedirectTo: getAuthCallbackUrl(),
+      },
     });
     if (otpError) {
       throw otpError;
     }
   }
 
-  async function onEmailSubmit(event: FormEvent) {
-    event.preventDefault();
+  async function requestLink(nextIntent: Intent) {
     setError("");
     setInfo("");
 
@@ -69,54 +72,30 @@ export function LoginFlow() {
     }
 
     setLoading(true);
+    setIntent(nextIntent);
     try {
-      await sendCode(trimmed);
+      await sendLink(trimmed, nextIntent);
       setEmail(trimmed);
-      setStep("code");
-      setCode("");
+      setStep("check-email");
     } catch (err) {
       setEmail(trimmed);
       if (isRateLimited(err)) {
-        setStep("code");
-        setCode("");
+        setStep("check-email");
         setError("");
         setInfo(
-          "A code may already be in your inbox. Enter it below, or wait a minute before resending."
+          "A link may already be in your inbox. Check your email, or wait a minute before resending."
         );
       } else {
-        setError(mapAuthError(err, "email"));
+        setError(mapAuthError(err, nextIntent === "login" ? "login" : "email"));
       }
     } finally {
       setLoading(false);
     }
   }
 
-  async function onCodeSubmit(event: FormEvent) {
+  async function onEmailSubmit(event: FormEvent) {
     event.preventDefault();
-    setError("");
-    setInfo("");
-
-    const token = code.replace(/\D/g, "");
-    if (token.length !== 6) {
-      setError("Enter the 6-digit code from your email.");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const { error: verifyError } = await supabase.auth.verifyOtp({
-        email,
-        token,
-        type: "email",
-      });
-      if (verifyError) {
-        throw verifyError;
-      }
-      await routeAfterAuth(router);
-    } catch (err) {
-      setError(mapAuthError(err, "code"));
-      setLoading(false);
-    }
+    await requestLink("signup");
   }
 
   async function onResend() {
@@ -124,10 +103,10 @@ export function LoginFlow() {
     setInfo("");
     setLoading(true);
     try {
-      await sendCode(email);
-      setInfo("A new code is on the way.");
+      await sendLink(email, intent);
+      setInfo("A new sign-in link is on the way.");
     } catch (err) {
-      setError(mapAuthError(err, "email"));
+      setError(mapAuthError(err, intent === "login" ? "login" : "email"));
     } finally {
       setLoading(false);
     }
@@ -176,55 +155,46 @@ export function LoginFlow() {
               disabled={loading}
               className="min-h-14 rounded-2xl bg-[#c9f24d] text-base font-extrabold text-[#14180a] disabled:opacity-60"
             >
-              {loading ? "Sending code…" : "Get started"}
+              {loading && intent === "signup" ? "Sending link…" : "Get started"}
+            </button>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => void requestLink("login")}
+              className="min-h-14 rounded-2xl border border-[#2a313c] bg-[#14171c] text-base font-extrabold text-[#f4f1ea] disabled:opacity-60"
+            >
+              {loading && intent === "login" ? "Sending link…" : "Log in"}
             </button>
             <p className="text-center text-sm text-[#9aa3b2]">
-              No password. We&apos;ll email you a code.
+              No password. We&apos;ll email you a sign-in link. Log in never
+              creates a new account.
             </p>
           </form>
         </>
       ) : (
         <>
           <h1 className="text-[1.85rem] font-extrabold leading-[1.15] tracking-tight text-[#f4f1ea]">
-            Check your email — we sent a 6-digit code to {email}
+            Check your email — we sent a sign-in link to {email}
           </h1>
-          <form onSubmit={onCodeSubmit} className="mt-8 flex flex-col gap-4">
-            <label className="flex flex-col gap-2 text-sm text-[#9aa3b2]">
-              6-digit code
-              <input
-                type="text"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                pattern="[0-9]*"
-                maxLength={6}
-                value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                placeholder="000000"
-                className="min-h-16 rounded-2xl border border-[#2a313c] bg-[#14171c] px-4 text-center text-3xl font-semibold tracking-[0.4em] text-[#f4f1ea] outline-none placeholder:tracking-[0.4em] placeholder:text-[#6b7380] focus:border-[#c9f24d]"
-              />
-            </label>
-            {error ? <p className="text-sm text-[#ff7a6e]">{error}</p> : null}
-            {info ? <p className="text-sm text-[#c9f24d]">{info}</p> : null}
-            <button
-              type="submit"
-              disabled={loading || code.length !== 6}
-              className="min-h-14 rounded-2xl bg-[#c9f24d] text-base font-extrabold text-[#14180a] disabled:opacity-60"
-            >
-              {loading ? "Checking…" : "Continue"}
-            </button>
+          <p className="mt-4 text-base leading-relaxed text-[#9aa3b2]">
+            Click the link to sign in. You can close this tab after that.
+          </p>
+          {error ? <p className="mt-4 text-sm text-[#ff7a6e]">{error}</p> : null}
+          {info ? <p className="mt-4 text-sm text-[#c9f24d]">{info}</p> : null}
+          <div className="mt-8 flex flex-col gap-4">
             <button
               type="button"
               onClick={onResend}
               disabled={loading}
               className="min-h-12 text-sm font-semibold text-[#c9f24d] disabled:opacity-60"
             >
-              Resend code
+              {loading ? "Sending…" : "Resend"}
             </button>
             <button
               type="button"
               onClick={() => {
                 setStep("landing");
-                setCode("");
+                setIntent("signup");
                 setError("");
                 setInfo("");
               }}
@@ -232,7 +202,7 @@ export function LoginFlow() {
             >
               Use a different email
             </button>
-          </form>
+          </div>
         </>
       )}
     </main>
