@@ -1,0 +1,585 @@
+.tracker-root {
+  --bg: #0b0d10;
+  --bg-elev: #14171c;
+  --bg-elev-2: #1b1f27;
+  --line: #2a313c;
+  --text: #f4f1ea;
+  --muted: #9aa3b2;
+  --accent: #c9f24d;
+  --accent-ink: #14180a;
+  --easy: #5ee0a0;
+  --ok: #f0c14b;
+  --hard: #ff7a6e;
+  --danger: #ff8b80;
+  --radius: 18px;
+  --tap: 56px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  max-width: 560px;
+  margin: 0 auto;
+  padding: calc(16px + var(--safe-top)) 16px calc(32px + var(--safe-bottom));
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.35;
+  min-height: 100dvh;
+}
+
+.tracker-root button,
+.tracker-root input {
+  font: inherit;
+}
+
+.tracker-root button {
+  color: inherit;
+}
+
+.tracker-root .topbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.tracker-root .eyebrow {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tracker-root h1 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  max-width: 11.5em;
+}
+
+.tracker-root h2 {
+  margin: 8px 0 8px;
+  font-size: 28px;
+  letter-spacing: -0.03em;
+}
+
+.tracker-root .muted {
+  color: var(--muted);
+}
+
+.tracker-root .bw-chip {
+  min-height: var(--tap);
+  min-width: 112px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--bg-elev);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+}
+
+.tracker-root .bw-chip-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.tracker-root .bw-chip strong {
+  font-size: 18px;
+}
+
+.tracker-root .tabs {
+  display: flex;
+  gap: 8px;
+  position: sticky;
+  top: var(--safe-top);
+  z-index: 4;
+  padding: 8px 0 12px;
+  overflow-x: auto;
+  background: linear-gradient(var(--bg) 70%, transparent);
+}
+
+.tracker-root .tab {
+  min-height: var(--tap);
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg-elev);
+  font-size: 13px;
+  font-weight: 700;
+  flex: 1 0 auto;
+  white-space: nowrap;
+}
+
+.tracker-root .tab.is-active {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+
+.tracker-root .screen {
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tracker-root .screen.is-visible {
+  display: flex;
+}
+
+.tracker-root .card {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 16px 14px;
+}
+
+.tracker-root .card.is-logged {
+  border-color: #3d4a2a;
+  box-shadow: inset 0 0 0 1px rgba(201, 242, 77, 0.12);
+}
+
+.tracker-root .card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.tracker-root .ex-name {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  font-size: 20px;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+}
+
+.tracker-root .equip-label {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tracker-root .logged-badge {
+  flex: none;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.tracker-root .ref {
+  display: grid;
+  gap: 6px;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.tracker-root .ref-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.tracker-root .ref-row .label {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.tracker-root .ref-row .value {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.tracker-root .ref-row .value.ghost {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.tracker-root .ref-row .value.suggest {
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 17px;
+}
+
+.tracker-root .inputs {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.tracker-root .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tracker-root .field span {
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tracker-root .field input {
+  width: 100%;
+  min-height: var(--tap);
+  padding: 8px 10px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: #0e1014;
+  color: var(--text);
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tracker-root .chip-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.tracker-root .match-btn,
+.tracker-root .undo-btn {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--bg-elev-2);
+}
+
+.tracker-root .undo-btn {
+  color: var(--danger);
+}
+
+.tracker-root .inline-error {
+  color: var(--hard);
+  font-size: 14px;
+  min-height: 20px;
+  margin: 0 0 8px;
+}
+
+.tracker-root .diff-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.tracker-root .diff-btn {
+  min-height: var(--tap);
+  border: 0;
+  border-radius: 14px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.tracker-root .diff-btn:active {
+  transform: scale(0.98);
+}
+
+.tracker-root .diff-btn.easy {
+  background: #163226;
+  color: var(--easy);
+}
+
+.tracker-root .diff-btn.ok {
+  background: #32290f;
+  color: var(--ok);
+}
+
+.tracker-root .diff-btn.hard {
+  background: #3a1816;
+  color: var(--hard);
+}
+
+.tracker-root .diff-btn.is-selected {
+  outline: 2px solid currentColor;
+}
+
+.tracker-root .sheet {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  overflow: auto;
+  z-index: 10;
+}
+
+.tracker-root .sheet-inner {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: calc(16px + var(--safe-top)) 16px calc(32px + var(--safe-bottom));
+}
+
+.tracker-root .back-btn {
+  min-height: 44px;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.tracker-root .history-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+}
+
+.tracker-root .history-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.tracker-root .history-list .meta {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.tracker-root .diff-pill {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tracker-root .diff-pill.Easy {
+  color: var(--easy);
+}
+
+.tracker-root .diff-pill.JustRight {
+  color: var(--ok);
+}
+
+.tracker-root .diff-pill.Hard {
+  color: var(--hard);
+}
+
+.tracker-root .settings {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.tracker-root .settings label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tracker-root .settings input {
+  min-height: 48px;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  color: var(--text);
+  font-size: 16px;
+}
+
+.tracker-root .bw-form {
+  display: grid;
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.tracker-root .bw-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.tracker-root .bw-form input {
+  min-height: var(--tap);
+  padding: 8px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  color: var(--text);
+  font-size: 18px;
+}
+
+.tracker-root .primary-btn {
+  min-height: var(--tap);
+  border: 0;
+  border-radius: 16px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 800;
+}
+
+.tracker-root .spark-wrap {
+  margin: 8px 0 4px;
+  min-height: 56px;
+}
+
+.tracker-root .spark-wrap svg {
+  width: 100%;
+  height: 64px;
+  display: block;
+}
+
+.tracker-root .empty {
+  color: var(--muted);
+  padding: 24px 0;
+}
+
+.tracker-root .hint {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+
+.tracker-root .progress-note {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0 0 12px;
+}
+
+.tracker-root .sign-out {
+  margin-top: 28px;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.tracker-root .sign-out-chip {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg-elev);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.tracker-root .empty-exercises {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 48px 16px 24px;
+  gap: 8px;
+}
+
+.tracker-root .empty-exercises h2 {
+  margin: 8px 0 0;
+  font-size: 24px;
+}
+
+.tracker-root .add-exercise {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  background: transparent;
+  border: 1.5px dashed var(--muted);
+  color: var(--muted);
+  border-radius: 16px;
+  font-weight: 700;
+}
+
+.tracker-root .add-exercise:hover,
+.tracker-root .add-exercise:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(201, 242, 77, 0.08);
+  outline: none;
+}
+
+.tracker-root .add-exercise-plus {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.tracker-root .add-exercise-empty {
+  min-height: 72px;
+  margin-top: 16px;
+  max-width: 280px;
+  border-color: var(--accent);
+  color: var(--accent);
+  font-size: 16px;
+}
+
+.tracker-root .add-exercise-empty:hover,
+.tracker-root .add-exercise-empty:focus-visible {
+  background: rgba(201, 242, 77, 0.12);
+}
+
+.tracker-root .add-exercise-row {
+  min-height: 48px;
+  margin-top: 2px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tracker-root .barbell-icon {
+  width: 88px;
+  height: 48px;
+}
+
+.tracker-root .equip-fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.tracker-root .equip-fieldset legend {
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.tracker-root .equip-fieldset {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.tracker-root .equip-option {
+  min-height: var(--tap);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg-elev-2);
+  font-weight: 700;
+}
+
+.tracker-root .equip-option.is-on {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
