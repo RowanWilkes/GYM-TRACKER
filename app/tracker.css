@@ -162,6 +162,50 @@
   margin-bottom: 10px;
 }
 
+.tracker-root .card-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+.tracker-root .delete-exercise {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+}
+
+.tracker-root .delete-exercise:hover,
+.tracker-root .delete-exercise:focus-visible {
+  color: var(--danger);
+  background: rgba(255, 139, 128, 0.12);
+  outline: none;
+}
+
+.tracker-root .delete-exercise.is-confirm {
+  width: auto;
+  padding: 0 12px;
+  border-color: rgba(255, 139, 128, 0.45);
+  background: rgba(255, 139, 128, 0.16);
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tracker-root .delete-exercise-icon {
+  width: 16px;
+  height: 16px;
+}
+
 .tracker-root .ex-name {
   margin: 0;
   padding: 0;

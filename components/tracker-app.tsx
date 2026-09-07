@@ -214,6 +214,29 @@ export function TrackerApp() {
     await refreshCurrentDay();
   }
 
+  async function deleteExercise(exerciseId: string) {
+    if (!userId) return;
+    setExercises((prev) => prev.filter((ex) => ex.id !== exerciseId));
+    setLogs((prev) => prev.filter((row) => row.exercise_id !== exerciseId));
+    setDrafts((prev) => {
+      const next = { ...prev };
+      delete next[exerciseId];
+      return next;
+    });
+    setError("");
+
+    const { error: deleteError } = await supabase
+      .from("exercises")
+      .delete()
+      .eq("id", exerciseId)
+      .eq("user_id", userId);
+    if (deleteError) {
+      console.error(deleteError);
+      setError("Couldn't delete");
+      await refreshCurrentDay();
+    }
+  }
+
   if (loading) {
     return (
       <div className="tracker-root">
@@ -280,6 +303,7 @@ export function TrackerApp() {
                   draft={drafts[ex.id]}
                   onDraft={(patch) => updateDraft(ex.id, patch)}
                   onSave={saveSet}
+                  onDelete={deleteExercise}
                 />
               ))}
               <AddExerciseButton variant="row" onClick={() => setShowAdd(true)} />
@@ -338,6 +362,21 @@ function EmptyExercises({ onAdd }: { onAdd: () => void }) {
   );
 }
 
+function TrashIcon() {
+  return (
+    <svg className="delete-exercise-icon" viewBox="0 0 16 16" aria-hidden="true">
+      <path
+        d="M5.5 2.75h5M3.25 4.5h9.5M6.25 6.5v5M9.75 6.5v5M4.75 4.5l.5 8.1a1.25 1.25 0 0 0 1.25 1.15h3a1.25 1.25 0 0 0 1.25-1.15l.5-8.1"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function BarbellIcon() {
   return (
     <svg className="barbell-icon" viewBox="0 0 88 48" aria-hidden="true">
@@ -357,6 +396,7 @@ function ExerciseCard({
   draft,
   onDraft,
   onSave,
+  onDelete,
 }: {
   ex: ExerciseRow;
   logs: LogRow[];
@@ -364,7 +404,9 @@ function ExerciseCard({
   draft?: Draft;
   onDraft: (patch: Partial<Draft>) => void;
   onSave: (id: string, rating: Rating) => void;
+  onDelete: (id: string) => void;
 }) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const todayLog = logs.find((l) => l.logged_at === today) ?? null;
   const last = orderedLogs(logs)[0] ?? null;
   const firstSession = !last;
@@ -375,6 +417,12 @@ function ExerciseCard({
   const repsVal = draft?.reps ?? (logged ? String(todayLog?.reps) : "");
   const setsVal = draft?.sets ?? (logged ? String(todayLog?.sets) : "");
 
+  useEffect(() => {
+    if (!confirmDelete) return;
+    const timer = window.setTimeout(() => setConfirmDelete(false), 3000);
+    return () => window.clearTimeout(timer);
+  }, [confirmDelete]);
+
   return (
     <article className={`card ${logged ? "is-logged" : ""}`}>
       <div className="card-head">
@@ -382,11 +430,27 @@ function ExerciseCard({
           <p className="ex-name">{ex.name}</p>
           <p className="equip-label">{equipmentLabel(ex.equipment)}</p>
         </div>
-        {logged ? (
-          <span className="logged-badge" aria-label="Logged">
-            ✓
-          </span>
-        ) : null}
+        <div className="card-head-actions">
+          {logged ? (
+            <span className="logged-badge" aria-label="Logged">
+              ✓
+            </span>
+          ) : null}
+          <button
+            className={`delete-exercise ${confirmDelete ? "is-confirm" : ""}`}
+            type="button"
+            aria-label={confirmDelete ? `Confirm delete ${ex.name}` : `Delete ${ex.name}`}
+            onClick={() => {
+              if (!confirmDelete) {
+                setConfirmDelete(true);
+                return;
+              }
+              onDelete(ex.id);
+            }}
+          >
+            {confirmDelete ? "Delete" : <TrashIcon />}
+          </button>
+        </div>
       </div>
       <div className="ref">
         <div className="ref-row">
