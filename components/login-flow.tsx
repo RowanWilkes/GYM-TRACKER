@@ -136,17 +136,17 @@ export function LoginFlow() {
 
   if (checkingSession) {
     return (
-      <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-5 py-12">
+      <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-4 py-12">
         <p className="text-sm text-[#9aa3b2]">Checking your session…</p>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-5 py-12">
+    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-4 py-12">
       {step === "landing" ? (
         <>
-          <h1 className="text-[2.15rem] font-extrabold leading-[1.1] tracking-tight text-[#f4f1ea]">
+          <h1 className="text-[2.15rem] font-extrabold leading-[1.1] tracking-tight break-words text-[#f4f1ea]">
             Progressive Overload Tracker
           </h1>
           <div className="mt-8 flex flex-col gap-4">

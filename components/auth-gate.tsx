@@ -71,7 +71,7 @@ export function AuthGate({
 
   if (!ok) {
     return (
-      <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-5">
+      <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-4">
         <p className="text-sm text-[#9aa3b2]">Loading…</p>
       </main>
     );

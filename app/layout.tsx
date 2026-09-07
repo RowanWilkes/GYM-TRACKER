@@ -17,6 +17,8 @@ export const viewport: Viewport = {
   themeColor: "#0b0d10",
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: "cover",
 };
 
@@ -27,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <body className="w-full overflow-x-hidden antialiased">{children}</body>
     </html>
   );
 }

@@ -98,7 +98,7 @@ export function OnboardingSplit() {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col px-5 pb-36 pt-[calc(20px+env(safe-area-inset-top))]">
+    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-4 pb-36 pt-[calc(20px+env(safe-area-inset-top))]">
       <h1 className="text-[2.15rem] font-extrabold leading-[1.1] tracking-tight text-[#f4f1ea]">
         How do you train?
       </h1>
@@ -193,7 +193,7 @@ export function OnboardingSplit() {
 
       {error ? <p className="mt-4 text-sm text-[#ff7a6e]">{error}</p> : null}
 
-      <div className="fixed inset-x-0 bottom-0 border-t border-[#2a313c] bg-[#0b0d10]/95 px-5 pt-3 pb-[calc(16px+env(safe-area-inset-bottom))]">
+      <div className="fixed inset-x-0 bottom-0 border-t border-[#2a313c] bg-[#0b0d10]/95 px-4 pt-3 pb-[calc(16px+env(safe-area-inset-bottom))]">
         <button
           type="button"
           onClick={onContinue}
