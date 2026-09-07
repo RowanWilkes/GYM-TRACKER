@@ -9,11 +9,13 @@ import {
   type LogRow,
   type Rating,
   equipmentLabel,
-  formatDate,
   formatLoad,
+  formatLogDate,
+  formatTodayHeader,
   todayISO,
+  toSentenceCase,
 } from "@/lib/types";
-import { orderedLogs, suggestionForExercise } from "@/lib/sessionSuggestion";
+import { lastLogBefore, numbersForTodaySave, suggestionForExercise } from "@/lib/sessionSuggestion";
 import LiftLoader from "@/components/LiftLoader";
 
 type Draft = { weight: string; reps: string; sets: string; error: string };
@@ -31,6 +33,10 @@ export function TrackerApp() {
 
   const today = todayISO();
   const selectedDay = days.find((d) => d.id === dayId) ?? null;
+
+  useEffect(() => {
+    setDrafts({});
+  }, [today]);
 
   const loadDays = useCallback(async (uid: string) => {
     const { data, error: daysError } = await supabase
@@ -150,17 +156,16 @@ export function TrackerApp() {
 
   async function saveSet(exerciseId: string, rating: Rating) {
     const draft = drafts[exerciseId] ?? { weight: "", reps: "", sets: "", error: "" };
-    if (draft.weight === "" || draft.reps === "" || draft.sets === "") {
+    const exercise = exercises.find((row) => row.id === exerciseId) ?? null;
+    const exLogs = logsByExercise.get(exerciseId) ?? [];
+    const suggestion = exercise ? suggestionForExercise(exercise, exLogs) : null;
+    const todayLog = exLogs.find((row) => row.logged_at === today) ?? null;
+    const numbers = numbersForTodaySave(draft, suggestion, todayLog);
+    if (!numbers) {
       updateDraft(exerciseId, { error: "Enter what you lifted first" });
       return;
     }
-    const weight = Number(draft.weight);
-    const reps = Number(draft.reps);
-    const sets = Number(draft.sets);
-    if (![weight, reps, sets].every((n) => Number.isFinite(n) && n > 0)) {
-      updateDraft(exerciseId, { error: "Enter what you lifted first" });
-      return;
-    }
+    const { weight, reps, sets } = numbers;
 
     const {
       data: { user },
@@ -246,12 +251,12 @@ export function TrackerApp() {
     <div className="tracker-root">
       <header className="topbar">
         <div>
-          <p className="eyebrow">{formatDate(today)}</p>
-          <h1>Progressive Overload Tracker</h1>
+          <p className="eyebrow t-meta">{formatTodayHeader(today)}</p>
+          <h1 className="t-title">Progressive Overload Tracker</h1>
         </div>
         <button
           type="button"
-          className="sign-out-chip"
+          className="sign-out-chip t-meta"
           onClick={async () => {
             await supabase.auth.signOut();
             window.location.href = "/";
@@ -261,23 +266,23 @@ export function TrackerApp() {
         </button>
       </header>
 
-      {error ? <p className="inline-error">{error}</p> : null}
+      {error ? <p className="inline-error t-body">{error}</p> : null}
 
       {days.length ? (
         <nav className="tabs" role="tablist" aria-label="Training days">
           {days.map((day) => (
             <button
               key={day.id}
-              className={`tab ${day.id === dayId ? "is-active" : ""}`}
+              className={`tab t-body ${day.id === dayId ? "is-active" : ""}`}
               type="button"
               onClick={() => selectDay(day.id)}
             >
-              {day.name}
+              {toSentenceCase(day.name)}
             </button>
           ))}
         </nav>
       ) : (
-        <p className="progress-note">No training days yet. Finish onboarding to add a split.</p>
+        <p className="progress-note t-meta">No training days yet. Finish onboarding to add a split.</p>
       )}
 
       {selectedDay ? (
@@ -286,7 +291,7 @@ export function TrackerApp() {
             <EmptyExercises onAdd={() => setShowAdd(true)} />
           ) : (
             <>
-              <p className="progress-note">
+              <p className="progress-note t-meta">
                 {exercises.filter((ex) => (logsByExercise.get(ex.id) ?? []).some((l) => l.logged_at === today)).length}
                 {" of "}
                 {exercises.length} logged today
@@ -333,7 +338,7 @@ function AddExerciseButton({
   onClick: () => void;
 }) {
   return (
-    <button className={`add-exercise add-exercise-${variant}`} type="button" onClick={onClick}>
+    <button className={`add-exercise add-exercise-${variant} t-body`} type="button" onClick={onClick}>
       <svg className="add-exercise-plus" viewBox="0 0 16 16" aria-hidden="true">
         <path
           d="M8 2.5v11M2.5 8h11"
@@ -352,8 +357,8 @@ function EmptyExercises({ onAdd }: { onAdd: () => void }) {
   return (
     <div className="empty-exercises">
       <BarbellIcon />
-      <h2>No exercises yet</h2>
-      <p className="muted">Add the lifts you do on this day</p>
+      <h2 className="t-title">No exercises yet</h2>
+      <p className="muted t-meta">Add the lifts you do on this day</p>
       <AddExerciseButton variant="empty" onClick={onAdd} />
     </div>
   );
@@ -405,7 +410,7 @@ function ExerciseCard({
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const todayLog = logs.find((l) => l.logged_at === today) ?? null;
-  const last = orderedLogs(logs)[0] ?? null;
+  const last = lastLogBefore(logs, today);
   const firstSession = !last;
   const logged = Boolean(todayLog);
   const suggestion = suggestionForExercise(ex, logs);
@@ -424,8 +429,8 @@ function ExerciseCard({
     <article className={`card ${logged ? "is-logged" : ""}`}>
       <div className="card-head">
         <div>
-          <p className="ex-name">{ex.name}</p>
-          <p className="equip-label">{equipmentLabel(ex.equipment)}</p>
+          <p className="ex-name t-card">{toSentenceCase(ex.name)}</p>
+          <p className="equip-label t-label">{equipmentLabel(ex.equipment)}</p>
         </div>
         <div className="card-head-actions">
           {logged ? (
@@ -434,7 +439,7 @@ function ExerciseCard({
             </span>
           ) : null}
           <button
-            className={`delete-exercise ${confirmDelete ? "is-confirm" : ""}`}
+            className={`delete-exercise ${confirmDelete ? "is-confirm t-label" : ""}`}
             type="button"
             aria-label={confirmDelete ? `Confirm delete ${ex.name}` : `Delete ${ex.name}`}
             onClick={() => {
@@ -451,78 +456,86 @@ function ExerciseCard({
       </div>
       <div className="ref">
         <div className="ref-row">
-          <span className="label">Last time</span>
-          <span className="value ghost">
+          <span className="label t-body">
+            {firstSession ? "Last time" : `Last time · ${formatLogDate(last.logged_at)}`}
+          </span>
+          <span className={`value ghost ${firstSession ? "t-meta" : "t-value"}`}>
             {firstSession ? "first time in" : formatLoad(last.weight_kg, last.reps, last.sets)}
           </span>
         </div>
         {suggestion ? (
           <>
             <div className="ref-row">
-              <span className="label">Suggested today</span>
-              <span className="value suggest">
+              <span className="label t-body">Suggested today</span>
+              <span className="value suggest t-value">
                 {formatLoad(suggestion.weightKg, suggestion.reps, suggestion.sets)}
               </span>
             </div>
-            <p className="hint">{suggestion.note}</p>
+            <p className="hint t-meta">{suggestion.note}</p>
           </>
         ) : (
-          <p className="hint">No suggestion yet — just record today.</p>
+          <p className="hint t-meta">No suggestion yet. Just record today.</p>
         )}
       </div>
       <div className="inputs">
         <label className="field">
-          <span>kg</span>
+          <span className="t-label">kg</span>
           <input
+            className="t-value"
             type="number"
             inputMode="decimal"
             step="0.5"
             min="0"
             value={weightVal}
+            placeholder={logged || !suggestion ? undefined : String(suggestion.weightKg)}
             onChange={(e) => onDraft({ weight: e.target.value })}
           />
         </label>
         <label className="field">
-          <span>Reps</span>
+          <span className="t-label">Reps</span>
           <input
+            className="t-value"
             type="number"
             inputMode="numeric"
             step="1"
             min="1"
             value={repsVal}
+            placeholder={logged || !suggestion ? undefined : String(suggestion.reps)}
             onChange={(e) => onDraft({ reps: e.target.value })}
           />
         </label>
         <label className="field">
-          <span>Sets</span>
+          <span className="t-label">Sets</span>
           <input
+            className="t-value"
             type="number"
             inputMode="numeric"
             step="1"
             min="1"
             value={setsVal}
+            placeholder={logged || !suggestion ? undefined : String(suggestion.sets)}
             onChange={(e) => onDraft({ sets: e.target.value })}
           />
         </label>
       </div>
-      <p className="inline-error">{draft?.error || ""}</p>
+      <p className="inline-error t-body">{draft?.error || ""}</p>
       <div className="diff-row">
         <button
-          className={`diff-btn easy ${todayLog?.rating === "easy" ? "is-selected" : ""}`}
+          className={`diff-btn easy t-value ${todayLog?.rating === "easy" ? "is-selected" : ""}`}
           type="button"
           onClick={() => onSave(ex.id, "easy")}
         >
           Easy
         </button>
         <button
-          className={`diff-btn ok ${todayLog?.rating === "just_right" ? "is-selected" : ""}`}
+          className={`diff-btn ok t-value ${todayLog?.rating === "just_right" ? "is-selected" : ""}`}
           type="button"
           onClick={() => onSave(ex.id, "just_right")}
         >
           Just Right
         </button>
         <button
-          className={`diff-btn hard ${todayLog?.rating === "hard" ? "is-selected" : ""}`}
+          className={`diff-btn hard t-value ${todayLog?.rating === "hard" ? "is-selected" : ""}`}
           type="button"
           onClick={() => onSave(ex.id, "hard")}
         >
@@ -584,15 +597,16 @@ function AddExerciseSheet({
   return (
     <section className="sheet">
       <div className="sheet-inner">
-        <button className="back-btn" type="button" onClick={onClose}>
+        <button className="back-btn t-body" type="button" onClick={onClose}>
           Back
         </button>
-        <h2>Add exercise</h2>
-        <p className="muted">This lift will show on this day’s list.</p>
+        <h2 className="t-title">Add exercise</h2>
+        <p className="muted t-meta">This lift will show on this day’s list.</p>
         <form className="bw-form" onSubmit={onSubmit}>
           <label>
-            Name
+            <span className="t-label">Name</span>
             <input
+              className="t-value"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Bench Press"
@@ -600,12 +614,12 @@ function AddExerciseSheet({
             />
           </label>
           <fieldset className="equip-fieldset">
-            <legend>Equipment</legend>
+            <legend className="t-label">Equipment</legend>
             {(["dumbbell", "barbell", "other"] as Equipment[]).map((value) => (
               <button
                 key={value}
                 type="button"
-                className={`equip-option ${equipment === value ? "is-on" : ""}`}
+                className={`equip-option t-body ${equipment === value ? "is-on" : ""}`}
                 onClick={() => setEquipment(value)}
               >
                 {equipmentLabel(value)}
@@ -614,8 +628,9 @@ function AddExerciseSheet({
           </fieldset>
           <div className="settings">
             <label>
-              Rep min
+              <span className="t-label">Rep min</span>
               <input
+                className="t-value"
                 type="number"
                 inputMode="numeric"
                 min="1"
@@ -624,8 +639,9 @@ function AddExerciseSheet({
               />
             </label>
             <label>
-              Rep max
+              <span className="t-label">Rep max</span>
               <input
+                className="t-value"
                 type="number"
                 inputMode="numeric"
                 min="1"
@@ -634,8 +650,8 @@ function AddExerciseSheet({
               />
             </label>
           </div>
-          {error ? <p className="inline-error">{error}</p> : null}
-          <button className="primary-btn" type="submit" disabled={saving}>
+          {error ? <p className="inline-error t-body">{error}</p> : null}
+          <button className="primary-btn t-value" type="submit" disabled={saving}>
             {saving ? "Saving…" : "Save exercise"}
           </button>
         </form>

@@ -1,5 +1,13 @@
 import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+  variable: "--font-app",
+});
 
 export const metadata: Metadata = {
   title: "Progressive Overload Tracker",
@@ -28,8 +36,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="w-full overflow-x-hidden antialiased">{children}</body>
+    <html lang="en" className={inter.variable}>
+      <body className={`${inter.className} w-full overflow-x-hidden antialiased`}>
+        {children}
+      </body>
     </html>
   );
 }

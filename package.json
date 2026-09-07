@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start --hostname 127.0.0.1 --port 43127",
     "lint": "eslint",
-    "test": "npx tsx tests/algorithm.test.ts && npx tsx tests/suggestNext.test.ts && npx tsx tests/sessionSuggestion.test.ts"
+    "test": "npx tsx tests/algorithm.test.ts && npx tsx tests/suggestNext.test.ts && npx tsx tests/sessionSuggestion.test.ts && npx tsx tests/sentenceCase.test.ts && npx tsx tests/sessionDate.test.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",

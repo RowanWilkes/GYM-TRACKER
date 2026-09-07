@@ -32,9 +32,6 @@
 
 .label {
   margin: 0;
-  font-size: 14px;
-  color: #8f8f8f;
-  letter-spacing: .01em;
 }
 
 @keyframes bob {

@@ -35,13 +35,13 @@ assertEqual(suggestionForExercise(ex, []), null, "No logs means no suggestion");
 
 assertEqual(
   suggestionForExercise(ex, [log({ logged_at: "2026-08-20", rating: "just_right", reps: 10 })]),
-  { weightKg: 40, reps: 11, sets: 4, note: "Add a rep" },
+  { weightKg: 40, reps: 11, sets: 4, note: "One more rep before you add weight" },
   "Just right below the range top adds a rep"
 );
 
 assertEqual(
   suggestionForExercise(ex, [log({ logged_at: "2026-08-20", rating: "easy", reps: 10 })]),
-  { weightKg: 42.5, reps: 8, sets: 4, note: "Weight up — you had room" },
+  { weightKg: 42.5, reps: 8, sets: 4, note: "You had room, so add weight" },
   "Easy adds weight and resets reps"
 );
 
@@ -53,7 +53,7 @@ const twoHard = [
 assertEqual(hardStreakFromLogs(twoHard), 2, "Hard streak counts consecutive hard from the latest log");
 assertEqual(
   suggestionForExercise(ex, twoHard),
-  { weightKg: 35, reps: 8, sets: 4, note: "Deload — build back up" },
+  { weightKg: 35, reps: 8, sets: 4, note: "Second hard session, time to deload" },
   "Two hard sessions deload"
 );
 

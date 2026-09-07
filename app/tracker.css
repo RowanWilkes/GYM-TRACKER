@@ -3,8 +3,8 @@
   --bg-elev: #14171c;
   --bg-elev-2: #1b1f27;
   --line: #2a313c;
-  --text: #f4f1ea;
-  --muted: #9aa3b2;
+  --text: var(--text-primary);
+  --muted: var(--text-muted);
   --accent: #c9f24d;
   --accent-ink: #14180a;
   --easy: #5ee0a0;
@@ -23,9 +23,7 @@
   padding: calc(16px + var(--safe-top)) 16px calc(32px + var(--safe-bottom));
   overflow-x: clip;
   background: var(--bg);
-  color: var(--text);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  font-size: 16px;
+  color: var(--text-body);
   line-height: 1.35;
   min-height: 100dvh;
 }
@@ -33,6 +31,12 @@
 .tracker-root button,
 .tracker-root input {
   font: inherit;
+}
+
+.tracker-root input.t-value {
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text-primary);
 }
 
 .tracker-root button {
@@ -50,24 +54,16 @@
 
 .tracker-root .eyebrow {
   margin: 0 0 4px;
-  color: var(--muted);
-  font-size: 13px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .tracker-root h1 {
   margin: 0;
-  font-size: 22px;
-  letter-spacing: -0.03em;
   line-height: 1.15;
   max-width: 11.5em;
 }
 
 .tracker-root h2 {
   margin: 8px 0 8px;
-  font-size: 28px;
-  letter-spacing: -0.03em;
 }
 
 .tracker-root .muted {
@@ -89,14 +85,7 @@
 }
 
 .tracker-root .bw-chip-label {
-  font-size: 11px;
   color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.tracker-root .bw-chip strong {
-  font-size: 18px;
 }
 
 .tracker-root .tabs {
@@ -118,8 +107,6 @@
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--bg-elev);
-  font-size: 13px;
-  font-weight: 700;
   flex: 1 0 auto;
   white-space: nowrap;
 }
@@ -195,10 +182,6 @@
   border-color: rgba(255, 139, 128, 0.45);
   background: rgba(255, 139, 128, 0.16);
   color: var(--danger);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .tracker-root .delete-exercise-icon {
@@ -212,18 +195,11 @@
   border: 0;
   background: none;
   text-align: left;
-  font-size: 20px;
-  font-weight: 750;
-  letter-spacing: -0.03em;
   overflow-wrap: anywhere;
 }
 
 .tracker-root .equip-label {
   margin: 4px 0 0;
-  color: var(--muted);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .tracker-root .logged-badge {
@@ -235,8 +211,8 @@
   color: var(--accent-ink);
   display: grid;
   place-items: center;
-  font-size: 18px;
-  font-weight: 800;
+  font-size: var(--font-card);
+  font-weight: var(--weight-semibold);
 }
 
 .tracker-root .ref {
@@ -254,25 +230,17 @@
   align-items: baseline;
 }
 
-.tracker-root .ref-row .label {
-  color: var(--muted);
-  font-size: 13px;
-}
-
 .tracker-root .ref-row .value {
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
 
 .tracker-root .ref-row .value.ghost {
-  color: var(--muted);
-  font-size: 14px;
+  color: var(--text-muted);
 }
 
 .tracker-root .ref-row .value.suggest {
   color: var(--accent);
-  font-weight: 800;
-  font-size: 17px;
 }
 
 .tracker-root .inputs {
@@ -290,13 +258,6 @@
   min-width: 0;
 }
 
-.tracker-root .field span {
-  font-size: 12px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
 .tracker-root .field input {
   width: 100%;
   max-width: 100%;
@@ -307,8 +268,12 @@
   border: 1px solid var(--line);
   background: #0e1014;
   color: var(--text);
-  font-size: 18px;
   font-variant-numeric: tabular-nums;
+}
+
+.tracker-root .field input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.55;
 }
 
 .tracker-root .chip-row {
@@ -332,7 +297,6 @@
 
 .tracker-root .inline-error {
   color: var(--hard);
-  font-size: 14px;
   min-height: 20px;
   margin: 0 0 8px;
 }
@@ -349,8 +313,6 @@
   min-width: 0;
   border: 0;
   border-radius: 14px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
 }
 
 .tracker-root .diff-btn:active {
@@ -399,7 +361,6 @@
   border: 0;
   background: none;
   color: var(--accent);
-  font-weight: 700;
 }
 
 .tracker-root .history-list {
@@ -416,16 +377,9 @@
   border-bottom: 1px solid var(--line);
 }
 
-.tracker-root .history-list .meta {
-  color: var(--muted);
-  font-size: 13px;
-}
-
 .tracker-root .diff-pill {
   display: inline-block;
   margin-top: 4px;
-  font-size: 12px;
-  font-weight: 700;
 }
 
 .tracker-root .diff-pill.Easy {
@@ -452,10 +406,6 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 12px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .tracker-root .settings input {
@@ -467,7 +417,6 @@
   border: 1px solid var(--line);
   background: var(--bg-elev);
   color: var(--text);
-  font-size: 16px;
 }
 
 .tracker-root .bw-form {
@@ -480,8 +429,6 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  color: var(--muted);
-  font-size: 13px;
 }
 
 .tracker-root .bw-form input {
@@ -493,7 +440,6 @@
   border: 1px solid var(--line);
   background: var(--bg-elev);
   color: var(--text);
-  font-size: 18px;
 }
 
 .tracker-root .primary-btn {
@@ -502,7 +448,6 @@
   border-radius: 16px;
   background: var(--accent);
   color: var(--accent-ink);
-  font-weight: 800;
 }
 
 .tracker-root .spark-wrap {
@@ -522,14 +467,10 @@
 }
 
 .tracker-root .hint {
-  font-size: 13px;
-  color: var(--muted);
   margin-top: 8px;
 }
 
 .tracker-root .progress-note {
-  font-size: 13px;
-  color: var(--muted);
   margin: 0 0 12px;
 }
 
@@ -539,7 +480,6 @@
   border: 0;
   background: none;
   color: var(--muted);
-  font-size: 14px;
 }
 
 .tracker-root .sign-out-chip {
@@ -548,9 +488,6 @@
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--bg-elev);
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 700;
 }
 
 .tracker-root .empty-exercises {
@@ -564,7 +501,6 @@
 
 .tracker-root .empty-exercises h2 {
   margin: 8px 0 0;
-  font-size: 24px;
 }
 
 .tracker-root .add-exercise {
@@ -577,7 +513,6 @@
   border: 1.5px dashed var(--muted);
   color: var(--muted);
   border-radius: 16px;
-  font-weight: 700;
 }
 
 .tracker-root .add-exercise:hover,
@@ -600,7 +535,6 @@
   max-width: 280px;
   border-color: var(--accent);
   color: var(--accent);
-  font-size: 16px;
 }
 
 .tracker-root .add-exercise-empty:hover,
@@ -611,8 +545,6 @@
 .tracker-root .add-exercise-row {
   min-height: 48px;
   margin-top: 2px;
-  font-size: 14px;
-  font-weight: 600;
 }
 
 .tracker-root .barbell-icon {
@@ -627,8 +559,6 @@
 }
 
 .tracker-root .equip-fieldset legend {
-  color: var(--muted);
-  font-size: 13px;
   margin-bottom: 8px;
 }
 
@@ -644,7 +574,6 @@
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--bg-elev-2);
-  font-weight: 700;
 }
 
 .tracker-root .equip-option.is-on {

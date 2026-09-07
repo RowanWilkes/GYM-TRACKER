@@ -14,7 +14,7 @@ export default function LiftLoader({ label = 'Loading your lifts…' }: { label?
         <span className={styles.plate} style={{ height: 34, animationDelay: '.12s' }} />
         <span className={styles.plate} style={{ height: 44, animationDelay: '0s' }} />
       </div>
-      <p className={styles.label}>{label}</p>
+      <p className={`t-meta ${styles.label}`}>{label}</p>
     </div>
   );
 }

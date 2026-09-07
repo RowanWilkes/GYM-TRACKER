@@ -37,17 +37,37 @@ export function todayISO(date = new Date()): string {
   return `${y}-${m}-${d}`;
 }
 
-export function formatDate(iso: string): string {
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
+
+function partsFromISO(iso: string): { weekday: string; day: number; month: string } {
   const [y, m, d] = iso.split("-").map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString(undefined, {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  });
+  const date = new Date(y, m - 1, d);
+  return { weekday: WEEKDAYS[date.getDay()], day: d, month: MONTHS[m - 1] };
+}
+
+export function formatDate(iso: string): string {
+  const { weekday, day, month } = partsFromISO(iso);
+  return `${weekday} ${day} ${month}`;
+}
+
+export function formatTodayHeader(iso: string): string {
+  return `Today · ${formatDate(iso)}`;
+}
+
+export function formatLogDate(iso: string): string {
+  const { day, month } = partsFromISO(iso);
+  return `${day} ${month}`;
 }
 
 export function formatLoad(weight: number, reps: number, sets: number): string {
   return `${weight} kg × ${reps} × ${sets}`;
+}
+
+export function toSentenceCase(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return value;
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
 }
 
 export function equipmentLabel(equipment: Equipment): string {

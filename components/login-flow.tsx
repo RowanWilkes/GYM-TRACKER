@@ -8,7 +8,7 @@ import { mapAuthError, routeAfterAuth } from "@/lib/auth";
 type Step = "landing" | "login" | "signup";
 
 const fieldClass =
-  "min-h-14 rounded-2xl border border-[#2a313c] bg-[#14171c] px-4 text-lg text-[#f4f1ea] outline-none placeholder:text-[#6b7380] focus:border-[#c9f24d]";
+  "t-value min-h-14 rounded-2xl border border-[#2a313c] bg-[#14171c] px-4 outline-none placeholder:text-[#6b7380] focus:border-[#c9f24d]";
 
 export function LoginFlow() {
   const router = useRouter();
@@ -137,7 +137,7 @@ export function LoginFlow() {
   if (checkingSession) {
     return (
       <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-4 py-12">
-        <p className="text-sm text-[#9aa3b2]">Checking your session…</p>
+        <p className="t-meta">Checking your session…</p>
       </main>
     );
   }
@@ -146,21 +146,21 @@ export function LoginFlow() {
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-4 py-12">
       {step === "landing" ? (
         <>
-          <h1 className="text-[2.15rem] font-extrabold leading-[1.1] tracking-tight break-words text-[#f4f1ea]">
+          <h1 className="t-title leading-[1.1] break-words">
             Progressive Overload Tracker
           </h1>
           <div className="mt-8 flex flex-col gap-4">
             <button
               type="button"
               onClick={() => openForm("login")}
-              className="min-h-14 rounded-2xl bg-[#c9f24d] text-base font-extrabold text-[#14180a]"
+              className="t-value min-h-14 rounded-2xl bg-[#c9f24d] text-[#14180a]!"
             >
               Log in
             </button>
             <button
               type="button"
               onClick={() => openForm("signup")}
-              className="min-h-14 rounded-2xl border border-[#2a313c] bg-[#14171c] text-base font-extrabold text-[#f4f1ea]"
+              className="t-value min-h-14 rounded-2xl border border-[#2a313c] bg-[#14171c] text-[#f4f1ea]"
             >
               Sign up
             </button>
@@ -170,12 +170,12 @@ export function LoginFlow() {
 
       {step === "login" ? (
         <>
-          <h1 className="text-[1.85rem] font-extrabold leading-[1.15] tracking-tight text-[#f4f1ea]">
+          <h1 className="t-title leading-[1.15]">
             Log in
           </h1>
           <form onSubmit={onLogin} className="mt-8 flex flex-col gap-4">
-            <label className="flex flex-col gap-2 text-sm text-[#9aa3b2]">
-              Email
+            <label className="flex flex-col gap-2">
+              <span className="t-label">Email</span>
               <input
                 type="email"
                 inputMode="email"
@@ -187,8 +187,8 @@ export function LoginFlow() {
                 className={fieldClass}
               />
             </label>
-            <label className="flex flex-col gap-2 text-sm text-[#9aa3b2]">
-              Password
+            <label className="flex flex-col gap-2">
+              <span className="t-label">Password</span>
               <input
                 type="password"
                 autoComplete="current-password"
@@ -198,18 +198,18 @@ export function LoginFlow() {
                 className={fieldClass}
               />
             </label>
-            {error ? <p className="text-sm text-[#ff7a6e]">{error}</p> : null}
+            {error ? <p className="t-body text-[#ff7a6e]">{error}</p> : null}
             <button
               type="submit"
               disabled={loading}
-              className="min-h-14 rounded-2xl bg-[#c9f24d] text-base font-extrabold text-[#14180a] disabled:opacity-60"
+              className="t-value min-h-14 rounded-2xl bg-[#c9f24d] text-[#14180a]! disabled:opacity-60"
             >
               {loading ? "Logging in…" : "Log in"}
             </button>
             <button
               type="button"
               onClick={backToLanding}
-              className="text-sm text-[#9aa3b2]"
+              className="t-meta"
             >
               Back
             </button>
@@ -219,12 +219,12 @@ export function LoginFlow() {
 
       {step === "signup" ? (
         <>
-          <h1 className="text-[1.85rem] font-extrabold leading-[1.15] tracking-tight text-[#f4f1ea]">
+          <h1 className="t-title leading-[1.15]">
             Sign up
           </h1>
           <form onSubmit={onSignup} className="mt-8 flex flex-col gap-4">
-            <label className="flex flex-col gap-2 text-sm text-[#9aa3b2]">
-              Email
+            <label className="flex flex-col gap-2">
+              <span className="t-label">Email</span>
               <input
                 type="email"
                 inputMode="email"
@@ -236,8 +236,8 @@ export function LoginFlow() {
                 className={fieldClass}
               />
             </label>
-            <label className="flex flex-col gap-2 text-sm text-[#9aa3b2]">
-              Password
+            <label className="flex flex-col gap-2">
+              <span className="t-label">Password</span>
               <input
                 type="password"
                 autoComplete="new-password"
@@ -247,18 +247,18 @@ export function LoginFlow() {
                 className={fieldClass}
               />
             </label>
-            {error ? <p className="text-sm text-[#ff7a6e]">{error}</p> : null}
+            {error ? <p className="t-body text-[#ff7a6e]">{error}</p> : null}
             <button
               type="submit"
               disabled={loading}
-              className="min-h-14 rounded-2xl bg-[#c9f24d] text-base font-extrabold text-[#14180a] disabled:opacity-60"
+              className="t-value min-h-14 rounded-2xl bg-[#c9f24d] text-[#14180a]! disabled:opacity-60"
             >
               {loading ? "Creating account…" : "Sign up"}
             </button>
             <button
               type="button"
               onClick={backToLanding}
-              className="text-sm text-[#9aa3b2]"
+              className="t-meta"
             >
               Back
             </button>

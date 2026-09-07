@@ -25,15 +25,15 @@ export function suggestNext(last: LastSession, range: RepRange, equipment: Equip
 
   if (last.rating === 'hard') {
     if (last.hardStreak >= 2) {
-      return { weightKg: roundToIncrement(w * 0.9, inc), reps: repMin, sets: last.sets, note: 'Deload — build back up' };
+      return { weightKg: roundToIncrement(w * 0.9, inc), reps: repMin, sets: last.sets, note: 'Second hard session, time to deload' };
     }
-    return { weightKg: w, reps: last.reps, sets: last.sets, note: 'Repeat and nail it' };
+    return { weightKg: w, reps: last.reps, sets: last.sets, note: 'Tough set, hold here next time' };
   }
   if (last.rating === 'easy') {
-    return { weightKg: w + inc, reps: repMin, sets: last.sets, note: 'Weight up — you had room' };
+    return { weightKg: w + inc, reps: repMin, sets: last.sets, note: 'You had room, so add weight' };
   }
   if (last.reps >= repMax) {
-    return { weightKg: w + inc, reps: repMin, sets: last.sets, note: 'Topped the range — weight up' };
+    return { weightKg: w + inc, reps: repMin, sets: last.sets, note: 'Reps maxed, so add weight' };
   }
-  return { weightKg: w, reps: last.reps + 1, sets: last.sets, note: 'Add a rep' };
+  return { weightKg: w, reps: last.reps + 1, sets: last.sets, note: 'One more rep before you add weight' };
 }

@@ -5,6 +5,34 @@ export function orderedLogs(logs: LogRow[]): LogRow[] {
   return [...logs].sort((a, b) => (a.logged_at < b.logged_at ? 1 : a.logged_at > b.logged_at ? -1 : 0));
 }
 
+export function lastLogBefore(logs: LogRow[], beforeDate: string): LogRow | null {
+  return orderedLogs(logs.filter((log) => log.logged_at < beforeDate))[0] ?? null;
+}
+
+export function numbersForTodaySave(
+  draft: { weight: string; reps: string; sets: string },
+  suggestion: { weightKg: number; reps: number; sets: number } | null,
+  todayLog: { weight_kg: number; reps: number; sets: number } | null = null
+): { weight: number; reps: number; sets: number } | null {
+  const allFilled = draft.weight !== "" && draft.reps !== "" && draft.sets !== "";
+  if (allFilled) {
+    const weight = Number(draft.weight);
+    const reps = Number(draft.reps);
+    const sets = Number(draft.sets);
+    if (![weight, reps, sets].every((n) => Number.isFinite(n) && n > 0)) return null;
+    return { weight, reps, sets };
+  }
+  const anyFilled = draft.weight !== "" || draft.reps !== "" || draft.sets !== "";
+  if (anyFilled) return null;
+  if (todayLog) {
+    return { weight: Number(todayLog.weight_kg), reps: todayLog.reps, sets: todayLog.sets };
+  }
+  if (suggestion) {
+    return { weight: suggestion.weightKg, reps: suggestion.reps, sets: suggestion.sets };
+  }
+  return null;
+}
+
 export function hardStreakFromLogs(logs: LogRow[]): number {
   let streak = 0;
   for (const log of orderedLogs(logs)) {
