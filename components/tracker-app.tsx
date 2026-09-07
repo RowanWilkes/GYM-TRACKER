@@ -14,6 +14,7 @@ import {
   todayISO,
 } from "@/lib/types";
 import { orderedLogs, suggestionForExercise } from "@/lib/sessionSuggestion";
+import LiftLoader from "@/components/LiftLoader";
 
 type Draft = { weight: string; reps: string; sets: string; error: string };
 
@@ -238,11 +239,7 @@ export function TrackerApp() {
   }
 
   if (loading) {
-    return (
-      <div className="tracker-root">
-        <p className="progress-note">Loading your lifts…</p>
-      </div>
-    );
+    return <LiftLoader />;
   }
 
   return (

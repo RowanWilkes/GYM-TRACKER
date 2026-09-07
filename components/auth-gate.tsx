@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { hasSupabaseConfig, supabase } from "@/lib/supabase";
+import LiftLoader from "@/components/LiftLoader";
 
 export function AuthGate({
   children,
@@ -70,11 +71,7 @@ export function AuthGate({
   }, [router, requireOnboarded, redirectIfOnboarded, guestOnly]);
 
   if (!ok) {
-    return (
-      <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-4">
-        <p className="text-sm text-[#9aa3b2]">Loading…</p>
-      </main>
-    );
+    return <LiftLoader />;
   }
 
   return <>{children}</>;
