@@ -1,4 +1,10 @@
-export type Equipment = "dumbbell" | "barbell" | "other";
+export type Equipment =
+  | "dumbbell"
+  | "barbell"
+  | "machine"
+  | "cable"
+  | "bodyweight"
+  | "other";
 export type Rating = "easy" | "just_right" | "hard";
 
 export type DayRow = {
@@ -73,6 +79,9 @@ export function toSentenceCase(value: string): string {
 export function equipmentLabel(equipment: Equipment): string {
   if (equipment === "dumbbell") return "Dumbbell";
   if (equipment === "barbell") return "Barbell";
+  if (equipment === "machine") return "Machine";
+  if (equipment === "cable") return "Cable";
+  if (equipment === "bodyweight") return "Bodyweight";
   return "Other";
 }
 

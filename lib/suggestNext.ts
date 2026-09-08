@@ -1,5 +1,11 @@
 export type Rating = 'easy' | 'just_right' | 'hard';
-export type Equipment = 'dumbbell' | 'barbell' | 'other';
+export type Equipment =
+  | "dumbbell"
+  | "barbell"
+  | "machine"
+  | "cable"
+  | "bodyweight"
+  | "other";
 
 export interface LastSession {
   weightKg: number;

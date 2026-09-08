@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import {
   type DayRow,
@@ -17,6 +17,11 @@ import {
 } from "@/lib/types";
 import { lastLogBefore, numbersForTodaySave, suggestionForExercise } from "@/lib/sessionSuggestion";
 import LiftLoader from "@/components/LiftLoader";
+import {
+  EQUIPMENT,
+  searchExercises,
+  type LibraryExercise,
+} from "@/src/data/exerciseLibrary";
 
 type Draft = { weight: string; reps: string; sets: string; error: string };
 
@@ -559,12 +564,30 @@ function AddExerciseSheet({
   onClose: () => void;
   onCreated: () => void;
 }) {
+  const [query, setQuery] = useState("");
+  const [resultsOpen, setResultsOpen] = useState(false);
   const [name, setName] = useState("");
   const [equipment, setEquipment] = useState<Equipment>("other");
   const [repMin, setRepMin] = useState("8");
   const [repMax, setRepMax] = useState("12");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const nameRef = useRef<HTMLInputElement>(null);
+  const matches = resultsOpen ? searchExercises(query) : [];
+
+  function applyLibraryExercise(entry: LibraryExercise) {
+    setName(entry.name);
+    setEquipment(entry.equipment.toLowerCase() as Equipment);
+    setRepMin(String(entry.repMin));
+    setRepMax(String(entry.repMax));
+    setResultsOpen(false);
+  }
+
+  function addCustom() {
+    setResultsOpen(false);
+    if (!name.trim() && query.trim()) setName(query.trim());
+    nameRef.current?.focus();
+  }
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -604,27 +627,72 @@ function AddExerciseSheet({
         <p className="muted t-meta">This lift will show on this day’s list.</p>
         <form className="bw-form" onSubmit={onSubmit}>
           <label>
+            <span className="t-label">Search</span>
+            <input
+              className="t-value"
+              type="search"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setResultsOpen(true);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.preventDefault();
+              }}
+              placeholder="Bench, squat, cable…"
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+            />
+          </label>
+          <p className="library-hint muted t-meta">Search for a lift or add your own.</p>
+          {matches.length > 0 ? (
+            <ul className="library-results">
+              {matches.map((entry) => (
+                <li key={`${entry.name}-${entry.equipment}`}>
+                  <button
+                    type="button"
+                    className="library-result"
+                    onClick={() => applyLibraryExercise(entry)}
+                  >
+                    <span className="t-value">{entry.name}</span>
+                    <span className="library-result-meta t-meta muted">
+                      {entry.equipment} · {entry.repMin}–{entry.repMax} reps
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          <button className="library-custom t-body" type="button" onClick={addCustom}>
+            Can't find it? Add custom
+          </button>
+          <label>
             <span className="t-label">Name</span>
             <input
+              ref={nameRef}
               className="t-value"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Bench Press"
+              placeholder="e.g. Hammer Strength chest press"
               required
             />
           </label>
           <fieldset className="equip-fieldset">
             <legend className="t-label">Equipment</legend>
-            {(["dumbbell", "barbell", "other"] as Equipment[]).map((value) => (
-              <button
-                key={value}
-                type="button"
-                className={`equip-option t-body ${equipment === value ? "is-on" : ""}`}
-                onClick={() => setEquipment(value)}
-              >
-                {equipmentLabel(value)}
-              </button>
-            ))}
+            {EQUIPMENT.map((label) => {
+              const value = label.toLowerCase() as Equipment;
+              return (
+                <button
+                  key={label}
+                  type="button"
+                  className={`equip-option t-body ${equipment === value ? "is-on" : ""}`}
+                  onClick={() => setEquipment(value)}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </fieldset>
           <div className="settings">
             <label>
