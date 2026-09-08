@@ -144,8 +144,8 @@ export function LoginFlow() {
 
   if (step === "landing") {
     return (
-      <main className="mx-auto flex min-h-dvh w-full max-w-[420px] flex-col overflow-y-auto px-5 pt-[calc(1.25rem+env(safe-area-inset-top))] pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
-        <div className="flex flex-1 flex-col justify-center py-6">
+      <main className="mx-auto flex min-h-dvh w-full max-w-[420px] flex-col justify-start overflow-y-auto px-5 pt-[calc(1.75rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+        <div>
           <div
             className="mb-5 grid h-[46px] w-[46px] place-items-center bg-[var(--accent)] text-[#14180a]"
             style={{ borderRadius: 13 }}
@@ -181,7 +181,7 @@ export function LoginFlow() {
           </ul>
         </div>
 
-        <div className="mt-6 flex flex-col gap-3">
+        <div className="mt-10 flex flex-col gap-3">
           <button
             type="button"
             onClick={() => openForm("signup")}
@@ -196,7 +196,6 @@ export function LoginFlow() {
           >
             Log in
           </button>
-          <p className="t-meta mt-1 text-center">Free · 30 seconds</p>
         </div>
       </main>
     );
