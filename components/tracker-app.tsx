@@ -325,6 +325,7 @@ export function TrackerApp() {
           dayId={dayId}
           nextPosition={exercises.length}
           onClose={() => setShowAdd(false)}
+          onAdded={refreshCurrentDay}
           onCreated={async () => {
             setShowAdd(false);
             await refreshCurrentDay();
@@ -551,70 +552,120 @@ function ExerciseCard({
   );
 }
 
+function libraryKey(entry: LibraryExercise): string {
+  return `${entry.name}|${entry.equipment}`;
+}
+
 function AddExerciseSheet({
   userId,
   dayId,
   nextPosition,
   onClose,
+  onAdded,
   onCreated,
 }: {
   userId: string;
   dayId: string;
   nextPosition: number;
   onClose: () => void;
+  onAdded: () => void | Promise<void>;
   onCreated: () => void;
 }) {
   const [query, setQuery] = useState("");
-  const [resultsOpen, setResultsOpen] = useState(false);
+  const [customMode, setCustomMode] = useState(false);
   const [name, setName] = useState("");
   const [equipment, setEquipment] = useState<Equipment>("other");
-  const [repMin, setRepMin] = useState("8");
-  const [repMax, setRepMax] = useState("12");
   const [saving, setSaving] = useState(false);
+  const [adding, setAdding] = useState<Set<string>>(() => new Set());
+  const [added, setAdded] = useState<Set<string>>(() => new Set());
   const [error, setError] = useState("");
   const nameRef = useRef<HTMLInputElement>(null);
-  const matches = resultsOpen ? searchExercises(query) : [];
+  const positionRef = useRef(nextPosition);
+  const matches = customMode ? [] : searchExercises(query);
 
-  function applyLibraryExercise(entry: LibraryExercise) {
-    setName(entry.name);
-    setEquipment(entry.equipment.toLowerCase() as Equipment);
-    setRepMin(String(entry.repMin));
-    setRepMax(String(entry.repMax));
-    setResultsOpen(false);
-  }
+  useEffect(() => {
+    positionRef.current = Math.max(positionRef.current, nextPosition);
+  }, [nextPosition]);
 
-  function addCustom() {
-    setResultsOpen(false);
-    if (!name.trim() && query.trim()) setName(query.trim());
+  useEffect(() => {
+    if (!customMode) return;
     nameRef.current?.focus();
-  }
+  }, [customMode]);
 
-  async function onSubmit(event: FormEvent) {
-    event.preventDefault();
-    const trimmed = name.trim();
+  async function createExercise(fields: {
+    name: string;
+    equipment: Equipment;
+    repMin: number;
+    repMax: number;
+  }): Promise<boolean> {
+    const trimmed = fields.name.trim();
     if (!trimmed) {
       setError("Name this lift.");
-      return;
+      return false;
     }
-    const min = Number(repMin) || 8;
-    const max = Number(repMax) || 12;
-    setSaving(true);
     setError("");
+    const position = positionRef.current;
+    positionRef.current = position + 1;
     const { error: insertError } = await supabase.from("exercises").insert({
       user_id: userId,
       day_id: dayId,
       name: trimmed,
-      equipment,
-      rep_min: min,
-      rep_max: Math.max(min, max),
-      position: nextPosition,
+      equipment: fields.equipment,
+      rep_min: fields.repMin,
+      rep_max: Math.max(fields.repMin, fields.repMax),
+      position,
     });
-    setSaving(false);
     if (insertError) {
       setError(insertError.message);
-      return;
+      return false;
     }
-    onCreated();
+    return true;
+  }
+
+  async function addLibraryExercise(entry: LibraryExercise) {
+    const key = libraryKey(entry);
+    if (added.has(key) || adding.has(key)) return;
+    setAdding((prev) => new Set(prev).add(key));
+    const ok = await createExercise({
+      name: entry.name,
+      equipment: entry.equipment.toLowerCase() as Equipment,
+      repMin: entry.repMin,
+      repMax: entry.repMax,
+    });
+    setAdding((prev) => {
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    });
+    if (!ok) return;
+    setAdded((prev) => new Set(prev).add(key));
+    await onAdded();
+  }
+
+  function openCustom() {
+    setCustomMode(true);
+    setError("");
+    if (!name.trim() && query.trim()) setName(query.trim());
+  }
+
+  function backToSearch() {
+    setCustomMode(false);
+    setError("");
+    setName("");
+    setEquipment("other");
+  }
+
+  async function onSubmit(event: FormEvent) {
+    event.preventDefault();
+    setSaving(true);
+    const ok = await createExercise({
+      name,
+      equipment,
+      repMin: 8,
+      repMax: 12,
+    });
+    setSaving(false);
+    if (ok) onCreated();
   }
 
   return (
@@ -624,105 +675,100 @@ function AddExerciseSheet({
           Back
         </button>
         <h2 className="t-title">Add exercise</h2>
-        <p className="muted t-meta">{"This lift will show on this day’s list."}</p>
-        <form className="bw-form" onSubmit={onSubmit}>
-          <label>
-            <span className="t-label">Search</span>
-            <input
-              className="t-value"
-              type="search"
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setResultsOpen(true);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") e.preventDefault();
-              }}
-              placeholder="Bench, squat, cable…"
-              autoComplete="off"
-              autoCorrect="off"
-              spellCheck={false}
-            />
-          </label>
-          <p className="library-hint muted t-meta">Search for a lift or add your own.</p>
-          {matches.length > 0 ? (
-            <ul className="library-results">
-              {matches.map((entry) => (
-                <li key={`${entry.name}-${entry.equipment}`}>
+        {customMode ? (
+          <form className="bw-form" onSubmit={onSubmit}>
+            <button className="library-back-search t-body" type="button" onClick={backToSearch}>
+              Back to search
+            </button>
+            <label>
+              <span className="t-label">Name</span>
+              <input
+                ref={nameRef}
+                className="t-value"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Hammer Strength chest press"
+                required
+              />
+            </label>
+            <fieldset className="equip-fieldset">
+              <legend className="t-label">Equipment</legend>
+              {EQUIPMENT.map((label) => {
+                const value = label.toLowerCase() as Equipment;
+                return (
                   <button
+                    key={label}
                     type="button"
-                    className="library-result"
-                    onClick={() => applyLibraryExercise(entry)}
+                    className={`equip-option t-body ${equipment === value ? "is-on" : ""}`}
+                    onClick={() => setEquipment(value)}
                   >
-                    <span className="t-value">{entry.name}</span>
-                    <span className="library-result-meta t-meta muted">
-                      {entry.equipment} · {entry.repMin}–{entry.repMax} reps
-                    </span>
+                    {label}
                   </button>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          <button className="library-custom t-body" type="button" onClick={addCustom}>
-            {"Can't find it? Add custom"}
-          </button>
-          <label>
-            <span className="t-label">Name</span>
-            <input
-              ref={nameRef}
-              className="t-value"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Hammer Strength chest press"
-              required
-            />
-          </label>
-          <fieldset className="equip-fieldset">
-            <legend className="t-label">Equipment</legend>
-            {EQUIPMENT.map((label) => {
-              const value = label.toLowerCase() as Equipment;
-              return (
-                <button
-                  key={label}
-                  type="button"
-                  className={`equip-option t-body ${equipment === value ? "is-on" : ""}`}
-                  onClick={() => setEquipment(value)}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </fieldset>
-          <div className="settings">
+                );
+              })}
+            </fieldset>
+            {error ? <p className="inline-error t-body">{error}</p> : null}
+            <button className="primary-btn t-value" type="submit" disabled={saving}>
+              {saving ? "Saving…" : "Save exercise"}
+            </button>
+          </form>
+        ) : (
+          <div className="bw-form">
             <label>
-              <span className="t-label">Rep min</span>
+              <span className="t-label">Search</span>
               <input
                 className="t-value"
-                type="number"
-                inputMode="numeric"
-                min="1"
-                value={repMin}
-                onChange={(e) => setRepMin(e.target.value)}
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") e.preventDefault();
+                }}
+                placeholder="Bench, squat, cable…"
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck={false}
               />
             </label>
-            <label>
-              <span className="t-label">Rep max</span>
-              <input
-                className="t-value"
-                type="number"
-                inputMode="numeric"
-                min="1"
-                value={repMax}
-                onChange={(e) => setRepMax(e.target.value)}
-              />
-            </label>
+            <p className="library-hint muted t-meta">Search for a lift or add your own.</p>
+            {matches.length > 0 ? (
+              <ul className="library-list">
+                {matches.map((entry) => {
+                  const key = libraryKey(entry);
+                  const isAdded = added.has(key);
+                  const isAdding = adding.has(key);
+                  return (
+                    <li key={key} className="card library-card">
+                      <div className="library-card-copy">
+                        <p className="library-card-name t-card">{entry.name}</p>
+                        <p className="library-card-meta t-meta muted">
+                          {entry.equipment} · {entry.repMin}–{entry.repMax} reps
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className={`library-add-pill t-value ${isAdded ? "is-added" : ""}`}
+                        disabled={isAdded || isAdding}
+                        aria-label={isAdded ? `${entry.name} added` : `Add ${entry.name}`}
+                        onClick={() => addLibraryExercise(entry)}
+                      >
+                        {isAdded ? "Added ✓" : isAdding ? "Adding…" : "Add"}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : null}
+            {error ? <p className="inline-error t-body">{error}</p> : null}
+            <button
+              className="add-exercise add-exercise-row library-custom-row t-body"
+              type="button"
+              onClick={openCustom}
+            >
+              {"＋ Can't find it? Add custom"}
+            </button>
           </div>
-          {error ? <p className="inline-error t-body">{error}</p> : null}
-          <button className="primary-btn t-value" type="submit" disabled={saving}>
-            {saving ? "Saving…" : "Save exercise"}
-          </button>
-        </form>
+        )}
       </div>
     </section>
   );

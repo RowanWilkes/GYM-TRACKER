@@ -588,46 +588,64 @@
   margin: -4px 0 0;
 }
 
-.tracker-root .library-results {
+.tracker-root .library-list {
   list-style: none;
-  margin: 0;
+  margin: 4px 0 0;
   padding: 0;
-  max-height: 240px;
-  overflow: auto;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--bg-elev);
+  display: grid;
+  gap: 8px;
 }
 
-.tracker-root .library-result {
+.tracker-root .library-card {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  width: 100%;
-  min-height: var(--tap);
-  padding: 12px 14px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 14px 14px 16px;
+}
+
+.tracker-root .library-card-copy {
+  min-width: 0;
+}
+
+.tracker-root .library-card-name {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.tracker-root .library-card-meta {
+  margin: 2px 0 0;
+}
+
+.tracker-root .library-add-pill {
+  flex: none;
+  min-height: 36px;
+  padding: 0 14px;
   border: 0;
-  border-bottom: 1px solid var(--line);
-  border-radius: 0;
-  background: transparent;
-  color: var(--text);
-  text-align: left;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 
-.tracker-root .library-results li:last-child .library-result {
-  border-bottom: 0;
+.tracker-root .library-add-pill:disabled {
+  opacity: 1;
 }
 
-.tracker-root .library-result-meta {
-  margin-top: 2px;
+.tracker-root .library-add-pill.is-added {
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 
-.tracker-root .library-custom {
+.tracker-root .library-custom-row {
+  margin-top: 4px;
+}
+
+.tracker-root .library-back-search {
   min-height: 44px;
   padding: 0 2px;
   border: 0;
   background: none;
   color: var(--accent);
   text-align: left;
+  justify-self: start;
 }
