@@ -617,6 +617,10 @@
   margin: -4px 0 0;
 }
 
+.tracker-root .library-session-count {
+  margin: -2px 0 0;
+}
+
 .tracker-root .library-list {
   list-style: none;
   margin: 4px 0 0;
@@ -648,6 +652,9 @@
 
 .tracker-root .library-add-pill {
   flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 36px;
   padding: 0 14px;
   border: 0;

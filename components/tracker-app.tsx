@@ -340,6 +340,7 @@ export function TrackerApp() {
         <AddExerciseSheet
           userId={userId}
           dayId={dayId}
+          dayExercises={exercises}
           nextPosition={exercises.length}
           onClose={() => setShowAdd(false)}
           onAdded={refreshCurrentDay}
@@ -573,9 +574,14 @@ function libraryKey(entry: LibraryExercise): string {
   return `${entry.name}|${entry.equipment}`;
 }
 
+function exerciseNameKey(name: string): string {
+  return name.trim().toLowerCase();
+}
+
 function AddExerciseSheet({
   userId,
   dayId,
+  dayExercises,
   nextPosition,
   onClose,
   onAdded,
@@ -583,6 +589,7 @@ function AddExerciseSheet({
 }: {
   userId: string;
   dayId: string;
+  dayExercises: ExerciseRow[];
   nextPosition: number;
   onClose: () => void;
   onAdded: () => void | Promise<void>;
@@ -594,11 +601,20 @@ function AddExerciseSheet({
   const [equipment, setEquipment] = useState<Equipment>("other");
   const [saving, setSaving] = useState(false);
   const [adding, setAdding] = useState<Set<string>>(() => new Set());
-  const [added, setAdded] = useState<Set<string>>(() => new Set());
+  const [addedNames, setAddedNames] = useState<Set<string>>(() => new Set());
+  const [sessionAdded, setSessionAdded] = useState(0);
   const [error, setError] = useState("");
   const nameRef = useRef<HTMLInputElement>(null);
   const positionRef = useRef(nextPosition);
+  const onDayRef = useRef<Set<string>>(new Set());
+  const addingRef = useRef<Set<string>>(new Set());
   const matches = customMode ? [] : searchExercises(query);
+  const onDayNames = useMemo(() => {
+    const names = new Set(dayExercises.map((ex) => exerciseNameKey(ex.name)));
+    for (const added of addedNames) names.add(added);
+    return names;
+  }, [dayExercises, addedNames]);
+  onDayRef.current = onDayNames;
 
   useEffect(() => {
     positionRef.current = Math.max(positionRef.current, nextPosition);
@@ -608,6 +624,10 @@ function AddExerciseSheet({
     if (!customMode) return;
     nameRef.current?.focus();
   }, [customMode]);
+
+  function isOnDay(entryName: string): boolean {
+    return onDayNames.has(exerciseNameKey(entryName));
+  }
 
   async function createExercise(fields: {
     name: string;
@@ -641,21 +661,34 @@ function AddExerciseSheet({
 
   async function addLibraryExercise(entry: LibraryExercise) {
     const key = libraryKey(entry);
-    if (added.has(key) || adding.has(key)) return;
+    const nameKey = exerciseNameKey(entry.name);
+    if (onDayRef.current.has(nameKey) || addingRef.current.has(key)) return;
+    addingRef.current.add(key);
+    onDayRef.current.add(nameKey);
     setAdding((prev) => new Set(prev).add(key));
+    setAddedNames((prev) => new Set(prev).add(nameKey));
     const ok = await createExercise({
       name: entry.name,
       equipment: entry.equipment.toLowerCase() as Equipment,
       repMin: entry.repMin,
       repMax: entry.repMax,
     });
+    addingRef.current.delete(key);
     setAdding((prev) => {
       const next = new Set(prev);
       next.delete(key);
       return next;
     });
-    if (!ok) return;
-    setAdded((prev) => new Set(prev).add(key));
+    if (!ok) {
+      onDayRef.current.delete(nameKey);
+      setAddedNames((prev) => {
+        const next = new Set(prev);
+        next.delete(nameKey);
+        return next;
+      });
+      return;
+    }
+    setSessionAdded((n) => n + 1);
     await onAdded();
   }
 
@@ -692,6 +725,9 @@ function AddExerciseSheet({
           Back
         </button>
         <h2 className="t-title">Add exercise</h2>
+        {sessionAdded > 0 ? (
+          <p className="library-session-count muted t-meta">{sessionAdded} added</p>
+        ) : null}
         {customMode ? (
           <form className="bw-form" onSubmit={onSubmit}>
             <button className="library-back-search t-body" type="button" onClick={backToSearch}>
@@ -752,7 +788,7 @@ function AddExerciseSheet({
               <ul className="library-list">
                 {matches.map((entry) => {
                   const key = libraryKey(entry);
-                  const isAdded = added.has(key);
+                  const isAdded = isOnDay(entry.name);
                   const isAdding = adding.has(key);
                   return (
                     <li key={key} className="card library-card">
@@ -762,15 +798,19 @@ function AddExerciseSheet({
                           {entry.equipment} · {entry.repMin}–{entry.repMax} reps
                         </p>
                       </div>
-                      <button
-                        type="button"
-                        className={`library-add-pill t-value ${isAdded ? "is-added" : ""}`}
-                        disabled={isAdded || isAdding}
-                        aria-label={isAdded ? `${entry.name} added` : `Add ${entry.name}`}
-                        onClick={() => addLibraryExercise(entry)}
-                      >
-                        {isAdded ? "Added ✓" : isAdding ? "Adding…" : "Add"}
-                      </button>
+                      {isAdded ? (
+                        <span className="library-add-pill is-added t-value">Added ✓</span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="library-add-pill t-value"
+                          disabled={isAdding}
+                          aria-label={`Add ${entry.name}`}
+                          onClick={() => addLibraryExercise(entry)}
+                        >
+                          {isAdding ? "Adding…" : "Add"}
+                        </button>
+                      )}
                     </li>
                   );
                 })}
