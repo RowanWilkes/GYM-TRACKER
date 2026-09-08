@@ -144,7 +144,7 @@ export function LoginFlow() {
 
   if (step === "landing") {
     return (
-      <main className="mx-auto flex min-h-dvh w-full max-w-[420px] flex-col justify-start overflow-y-auto px-5 pt-[calc(1.75rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+      <main className="mx-auto flex min-h-dvh w-full max-w-[420px] flex-col justify-center overflow-y-auto px-5 pt-[calc(1.75rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
         <div>
           <div
             className="mb-5 grid h-[46px] w-[46px] place-items-center bg-[var(--accent)] text-[#14180a]"
@@ -179,23 +179,23 @@ export function LoginFlow() {
               <span className="t-body">Built for your phone at the rack</span>
             </li>
           </ul>
-        </div>
 
-        <div className="mt-10 flex flex-col gap-3">
-          <button
-            type="button"
-            onClick={() => openForm("signup")}
-            className="t-value min-h-14 rounded-2xl bg-[var(--accent)] text-[#14180a]!"
-          >
-            Create free account
-          </button>
-          <button
-            type="button"
-            onClick={() => openForm("login")}
-            className="t-value min-h-14 rounded-2xl border border-[#2a313c] bg-transparent text-[var(--text-primary)]"
-          >
-            Log in
-          </button>
+          <div className="mt-10 flex flex-col gap-3">
+            <button
+              type="button"
+              onClick={() => openForm("signup")}
+              className="t-value min-h-14 rounded-2xl bg-[var(--accent)] text-[#14180a]!"
+            >
+              Create free account
+            </button>
+            <button
+              type="button"
+              onClick={() => openForm("login")}
+              className="t-value min-h-14 rounded-2xl border border-[#2a313c] bg-transparent text-[var(--text-primary)]"
+            >
+              Log in
+            </button>
+          </div>
         </div>
       </main>
     );
