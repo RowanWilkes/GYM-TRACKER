@@ -624,7 +624,7 @@ function AddExerciseSheet({
           Back
         </button>
         <h2 className="t-title">Add exercise</h2>
-        <p className="muted t-meta">This lift will show on this day’s list.</p>
+        <p className="muted t-meta">{"This lift will show on this day’s list."}</p>
         <form className="bw-form" onSubmit={onSubmit}>
           <label>
             <span className="t-label">Search</span>
@@ -665,7 +665,7 @@ function AddExerciseSheet({
             </ul>
           ) : null}
           <button className="library-custom t-body" type="button" onClick={addCustom}>
-            Can't find it? Add custom
+            {"Can't find it? Add custom"}
           </button>
           <label>
             <span className="t-label">Name</span>
