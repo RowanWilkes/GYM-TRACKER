@@ -261,13 +261,30 @@ export function TrackerApp() {
         </div>
         <button
           type="button"
-          className="sign-out-chip t-meta"
+          className="sign-out-chip flex-none w-[38px] h-[38px] rounded-full grid place-items-center border-[0.5px] border-[#2c322f] text-[#8b928c] transition hover:border-[#3a413d] hover:text-[#c9cec9] hover:bg-white/5 active:scale-[0.97]"
+          aria-label="Sign out"
+          title="Sign out"
           onClick={async () => {
             await supabase.auth.signOut();
             window.location.href = "/";
           }}
         >
-          Sign out
+          <svg
+            className="sign-out-icon"
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" x2="9" y1="12" y2="12" />
+          </svg>
         </button>
       </header>
 
