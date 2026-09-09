@@ -132,7 +132,6 @@ export function TrainingDaysEditor() {
       console.error("days save skipped: no user", {
         message: userErr?.message,
         code: userErr?.code,
-        details: userErr?.details,
         error: userErr,
       });
       setError(userErr?.message || "You need to be signed in.");
