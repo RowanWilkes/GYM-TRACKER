@@ -80,6 +80,7 @@ export function OnboardingSplit() {
         user_id: user.id,
         name,
         position,
+        sort_order: position,
       }));
 
       const { error: insertError } = await supabase.from("days").insert(rows);

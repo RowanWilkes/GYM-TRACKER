@@ -12,6 +12,7 @@ export type DayRow = {
   user_id: string;
   name: string;
   position: number;
+  sort_order: number | null;
 };
 
 export type ExerciseRow = {

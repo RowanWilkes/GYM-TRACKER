@@ -47,11 +47,18 @@
 
 .tracker-root .topbar {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 18px;
   min-width: 0;
+}
+
+.tracker-root .topbar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: none;
 }
 
 .tracker-root .eyebrow {
@@ -528,6 +535,18 @@
 
 .tracker-root .sign-out-icon {
   display: block;
+}
+
+.tracker-root .edit-days-chip {
+  color: #c4f042;
+}
+
+.tracker-root .edit-days-chip:hover,
+.tracker-root .edit-days-chip:focus-visible {
+  border-color: #c4f042;
+  color: #c4f042;
+  background: rgba(196, 240, 66, 0.08);
+  outline: none;
 }
 
 .tracker-root .empty-exercises {

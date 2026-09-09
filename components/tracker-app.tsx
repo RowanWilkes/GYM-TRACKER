@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
   type DayRow,
@@ -26,6 +27,7 @@ import {
 type Draft = { weight: string; reps: string; sets: string; error: string };
 
 export function TrackerApp() {
+  const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
   const [days, setDays] = useState<DayRow[]>([]);
   const [dayId, setDayId] = useState<string | null>(null);
@@ -46,9 +48,9 @@ export function TrackerApp() {
   const loadDays = useCallback(async (uid: string) => {
     const { data, error: daysError } = await supabase
       .from("days")
-      .select("id, user_id, name, position")
+      .select("id, user_id, name, position, sort_order")
       .eq("user_id", uid)
-      .order("position", { ascending: true });
+      .order("sort_order", { ascending: true, nullsFirst: false });
     if (daysError) throw daysError;
     return (data ?? []) as DayRow[];
   }, []);
@@ -259,33 +261,58 @@ export function TrackerApp() {
           <p className="eyebrow t-meta">{formatTodayHeader(today)}</p>
           <h1 className="t-title">Progressive Overload Tracker</h1>
         </div>
-        <button
-          type="button"
-          className="sign-out-chip flex-none w-[38px] h-[38px] rounded-full grid place-items-center border-[0.5px] border-[#2c322f] text-[#8b928c] transition hover:border-[#3a413d] hover:text-[#c9cec9] hover:bg-white/5 active:scale-[0.97]"
-          aria-label="Sign out"
-          title="Sign out"
-          onClick={async () => {
-            await supabase.auth.signOut();
-            window.location.href = "/";
-          }}
-        >
-          <svg
-            className="sign-out-icon"
-            viewBox="0 0 24 24"
-            width="16"
-            height="16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
+        <div className="topbar-actions">
+          <button
+            type="button"
+            className="sign-out-chip flex-none w-[38px] h-[38px] rounded-full grid place-items-center border-[0.5px] border-[#2c322f] text-[#8b928c] transition hover:border-[#3a413d] hover:text-[#c9cec9] hover:bg-white/5 active:scale-[0.97]"
+            aria-label="Sign out"
+            title="Sign out"
+            onClick={async () => {
+              await supabase.auth.signOut();
+              window.location.href = "/";
+            }}
           >
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" x2="9" y1="12" y2="12" />
-          </svg>
-        </button>
+            <svg
+              className="sign-out-icon"
+              viewBox="0 0 24 24"
+              width="16"
+              height="16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" x2="9" y1="12" y2="12" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="sign-out-chip edit-days-chip flex-none w-[38px] h-[38px] rounded-full grid place-items-center border-[0.5px] border-[#2c322f] transition hover:bg-white/5 active:scale-[0.97]"
+            aria-label="Edit training days"
+            title="Edit training days"
+            onClick={() => router.push("/training-days")}
+          >
+            <svg
+              className="sign-out-icon"
+              viewBox="0 0 24 24"
+              width="16"
+              height="16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+            </svg>
+          </button>
+        </div>
       </header>
 
       {error ? <p className="inline-error t-body">{error}</p> : null}

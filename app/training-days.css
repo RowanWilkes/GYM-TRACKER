@@ -1,0 +1,163 @@
+.tracker-root.days-root {
+  padding-bottom: calc(24px + var(--safe-bottom));
+}
+
+.tracker-root .days-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.tracker-root .days-back {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  margin-left: -10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #f2f2f2;
+  display: grid;
+  place-items: center;
+}
+
+.tracker-root .days-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 500;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.tracker-root .days-subtitle {
+  margin: 0 0 20px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.tracker-root .days-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.tracker-root .days-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 14px 12px 14px 10px;
+  background: #171717;
+  border: 0.5px solid #2a2a2a;
+  border-radius: 12px;
+}
+
+.tracker-root .days-card.is-editing {
+  border-color: #c4f042;
+}
+
+.tracker-root .days-grip {
+  flex: none;
+  width: 36px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #8b928c;
+  display: grid;
+  place-items: center;
+  touch-action: none;
+  cursor: grab;
+}
+
+.tracker-root .days-name {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 500;
+  text-align: left;
+}
+
+.tracker-root .days-name-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1.5px solid #c4f042;
+  border-radius: 10px;
+  background: #111111;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.tracker-root .days-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+}
+
+.tracker-root .days-icon-btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #8b928c;
+  display: grid;
+  place-items: center;
+}
+
+.tracker-root .days-add {
+  width: 100%;
+  min-height: 56px;
+  margin-top: 12px;
+  border: 1.5px dashed #c4f042;
+  border-radius: 12px;
+  background: transparent;
+  color: #c4f042;
+}
+
+.tracker-root .days-divider {
+  margin: 20px 0;
+  border: 0;
+  border-top: 0.5px solid #2a2a2a;
+}
+
+.tracker-root .days-preset {
+  width: 100%;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 0.5px solid #2a2a2a;
+  border-radius: 12px;
+  background: #171717;
+  color: #f2f2f2;
+}
+
+.tracker-root .days-save {
+  width: 100%;
+  min-height: 56px;
+  margin-top: 16px;
+  border: 0;
+  border-radius: 16px;
+  background: #c4f042;
+  color: #1a2400;
+  font-weight: 500;
+}
+
+.tracker-root .days-save:disabled {
+  opacity: 0.7;
+}
