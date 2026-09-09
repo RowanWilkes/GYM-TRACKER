@@ -338,7 +338,6 @@ export function TrackerApp() {
 
       {showAdd && userId && dayId ? (
         <AddExerciseSheet
-          userId={userId}
           dayId={dayId}
           dayExercises={exercises}
           nextPosition={exercises.length}
@@ -578,8 +577,21 @@ function exerciseNameKey(name: string): string {
   return name.trim().toLowerCase();
 }
 
+function toCatalogEquipment(value: string): (typeof EQUIPMENT)[number] {
+  const match = EQUIPMENT.find((item) => item.toLowerCase() === value.trim().toLowerCase());
+  return match ?? "Other";
+}
+
+function logSupabaseError(label: string, err: { message?: string; code?: string; details?: string } | null) {
+  console.error(label, {
+    message: err?.message,
+    code: err?.code,
+    details: err?.details,
+    error: err,
+  });
+}
+
 function AddExerciseSheet({
-  userId,
   dayId,
   dayExercises,
   nextPosition,
@@ -587,7 +599,6 @@ function AddExerciseSheet({
   onAdded,
   onCreated,
 }: {
-  userId: string;
   dayId: string;
   dayExercises: ExerciseRow[];
   nextPosition: number;
@@ -631,7 +642,7 @@ function AddExerciseSheet({
 
   async function createExercise(fields: {
     name: string;
-    equipment: Equipment;
+    equipment: string;
     repMin: number;
     repMax: number;
   }): Promise<boolean> {
@@ -641,18 +652,34 @@ function AddExerciseSheet({
       return false;
     }
     setError("");
+    const {
+      data: { user },
+      error: userErr,
+    } = await supabase.auth.getUser();
+    if (userErr || !user) {
+      logSupabaseError("exercises insert skipped: no user", userErr);
+      setError(userErr?.message || "You need to be signed in.");
+      return false;
+    }
+    if (!dayId) {
+      setError("Pick a training day first.");
+      return false;
+    }
     const position = positionRef.current;
     positionRef.current = position + 1;
-    const { error: insertError } = await supabase.from("exercises").insert({
-      user_id: userId,
+    const payload = {
+      user_id: user.id,
       day_id: dayId,
       name: trimmed,
-      equipment: fields.equipment,
+      equipment: toCatalogEquipment(fields.equipment),
       rep_min: fields.repMin,
       rep_max: Math.max(fields.repMin, fields.repMax),
       position,
-    });
+    };
+    console.log("exercises insert payload", payload);
+    const { error: insertError } = await supabase.from("exercises").insert(payload);
     if (insertError) {
+      logSupabaseError("exercises insert failed", insertError);
       setError(insertError.message);
       return false;
     }
@@ -669,7 +696,7 @@ function AddExerciseSheet({
     setAddedNames((prev) => new Set(prev).add(nameKey));
     const ok = await createExercise({
       name: entry.name,
-      equipment: entry.equipment.toLowerCase() as Equipment,
+      equipment: entry.equipment,
       repMin: entry.repMin,
       repMax: entry.repMax,
     });

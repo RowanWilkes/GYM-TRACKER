@@ -77,11 +77,12 @@ export function toSentenceCase(value: string): string {
 }
 
 export function equipmentLabel(equipment: Equipment): string {
-  if (equipment === "dumbbell") return "Dumbbell";
-  if (equipment === "barbell") return "Barbell";
-  if (equipment === "machine") return "Machine";
-  if (equipment === "cable") return "Cable";
-  if (equipment === "bodyweight") return "Bodyweight";
+  const key = equipment.toLowerCase();
+  if (key === "dumbbell") return "Dumbbell";
+  if (key === "barbell") return "Barbell";
+  if (key === "machine") return "Machine";
+  if (key === "cable") return "Cable";
+  if (key === "bodyweight") return "Bodyweight";
   return "Other";
 }
 

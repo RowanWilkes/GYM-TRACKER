@@ -18,7 +18,7 @@ export interface RepRange { repMin: number; repMax: number; }
 export interface Suggestion { weightKg: number; reps: number; sets: number; note: string; }
 
 function incrementFor(equipment: Equipment): number {
-  return equipment === 'barbell' ? 5 : 2.5;
+  return equipment.toLowerCase() === "barbell" ? 5 : 2.5;
 }
 function roundToIncrement(value: number, inc: number): number {
   return Math.round(value / inc) * inc;
