@@ -339,6 +339,7 @@ export function TrackerApp() {
       {showAdd && userId && dayId ? (
         <AddExerciseSheet
           dayId={dayId}
+          dayName={selectedDay?.name ?? ""}
           dayExercises={exercises}
           nextPosition={exercises.length}
           onClose={() => setShowAdd(false)}
@@ -593,6 +594,7 @@ function logSupabaseError(label: string, err: { message?: string; code?: string;
 
 function AddExerciseSheet({
   dayId,
+  dayName,
   dayExercises,
   nextPosition,
   onClose,
@@ -600,6 +602,7 @@ function AddExerciseSheet({
   onCreated,
 }: {
   dayId: string;
+  dayName: string;
   dayExercises: ExerciseRow[];
   nextPosition: number;
   onClose: () => void;
@@ -746,15 +749,12 @@ function AddExerciseSheet({
   }
 
   return (
-    <section className="sheet">
+    <section className={`sheet ${sessionAdded > 0 ? "has-done-bar" : ""}`}>
       <div className="sheet-inner">
         <button className="back-btn t-body" type="button" onClick={onClose}>
           Back
         </button>
         <h2 className="t-title">Add exercise</h2>
-        {sessionAdded > 0 ? (
-          <p className="library-session-count muted t-meta">{sessionAdded} added</p>
-        ) : null}
         {customMode ? (
           <form className="bw-form" onSubmit={onSubmit}>
             <button className="library-back-search t-body" type="button" onClick={backToSearch}>
@@ -854,6 +854,23 @@ function AddExerciseSheet({
           </div>
         )}
       </div>
+      {sessionAdded > 0 ? (
+        <div className="library-done-bar">
+          <div className="library-done-bar-inner">
+            <div className="library-done-copy">
+              <p className="library-done-count t-value">
+                {sessionAdded} {sessionAdded === 1 ? "exercise" : "exercises"} added
+              </p>
+              <p className="library-done-day t-meta muted">
+                to {toSentenceCase(dayName) || "this day"}
+              </p>
+            </div>
+            <button className="library-done-btn t-value" type="button" onClick={onClose}>
+              Done
+            </button>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

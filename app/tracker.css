@@ -343,18 +343,27 @@
 .tracker-root .sheet {
   position: fixed;
   inset: 0;
+  display: flex;
+  flex-direction: column;
   background: var(--bg);
-  overflow: auto;
+  overflow: hidden;
   z-index: 10;
 }
 
 .tracker-root .sheet-inner {
+  flex: 1;
   width: 100%;
   max-width: 28rem;
   min-width: 0;
+  min-height: 0;
   margin: 0 auto;
   padding: calc(16px + var(--safe-top)) 16px calc(32px + var(--safe-bottom));
   box-sizing: border-box;
+  overflow: auto;
+}
+
+.tracker-root .sheet.has-done-bar .sheet-inner {
+  padding-bottom: 16px;
 }
 
 .tracker-root .back-btn {
@@ -617,10 +626,6 @@
   margin: -4px 0 0;
 }
 
-.tracker-root .library-session-count {
-  margin: -2px 0 0;
-}
-
 .tracker-root .library-list {
   list-style: none;
   margin: 4px 0 0;
@@ -651,16 +656,19 @@
 }
 
 .tracker-root .library-add-pill {
+  box-sizing: border-box;
   flex: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-width: 6.25rem;
   min-height: 36px;
+  height: 36px;
   padding: 0 14px;
-  border: 0;
+  border: 1.5px solid #c4f042;
   border-radius: 999px;
-  background: var(--accent);
-  color: var(--accent-ink);
+  background: transparent;
+  color: #c4f042;
 }
 
 .tracker-root .library-add-pill:disabled {
@@ -668,8 +676,9 @@
 }
 
 .tracker-root .library-add-pill.is-added {
-  background: var(--accent);
-  color: var(--accent-ink);
+  background: #c4f042;
+  color: #1a2400;
+  border-color: #c4f042;
 }
 
 .tracker-root .library-custom-row {
@@ -684,4 +693,60 @@
   color: var(--accent);
   text-align: left;
   justify-self: start;
+}
+
+.tracker-root .library-done-bar {
+  flex: none;
+  background: var(--bg-elev);
+  border-top: 1px solid var(--line);
+  padding: 12px 16px calc(12px + var(--safe-bottom));
+  animation: library-done-in 0.28s ease-out;
+}
+
+.tracker-root .library-done-bar-inner {
+  width: 100%;
+  max-width: 26.25rem;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tracker-root .library-done-copy {
+  min-width: 0;
+}
+
+.tracker-root .library-done-count {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.tracker-root .library-done-day {
+  margin: 2px 0 0;
+}
+
+.tracker-root .library-done-btn {
+  flex: none;
+  min-height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 14px;
+  background: #c4f042;
+  color: #1a2400;
+}
+
+@keyframes library-done-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tracker-root .library-done-bar {
+    animation: none;
+  }
 }
