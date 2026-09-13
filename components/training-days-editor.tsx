@@ -32,6 +32,7 @@ type DraftDay = {
 export function TrainingDaysEditor() {
   const router = useRouter();
   const [days, setDays] = useState<DraftDay[]>([]);
+  const [removedIds, setRemovedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -59,6 +60,7 @@ export function TrainingDaysEditor() {
         .from("days")
         .select("id, user_id, name, position, sort_order")
         .eq("user_id", user.id)
+        .is("archived_at", null)
         .order("sort_order", { ascending: true });
       if (cancelled) return;
       if (daysError) {
@@ -94,7 +96,11 @@ export function TrainingDaysEditor() {
   }
 
   function removeDay(id: string) {
-    setDays((prev) => prev.filter((day) => day.id !== id));
+    const day = days.find((d) => d.id === id);
+    if (day?.persisted) {
+      setRemovedIds((ids) => (ids.includes(id) ? ids : [...ids, id]));
+    }
+    setDays((prev) => prev.filter((d) => d.id !== id));
   }
 
   function addDay() {
@@ -174,6 +180,22 @@ export function TrainingDaysEditor() {
             });
             throw insertError;
           }
+        }
+      }
+      for (const id of removedIds) {
+        const { error: archiveError } = await supabase
+          .from("days")
+          .update({ archived_at: new Date().toISOString() })
+          .eq("id", id)
+          .eq("user_id", user.id);
+        if (archiveError) {
+          console.error("days archive failed", {
+            message: archiveError.message,
+            code: archiveError.code,
+            details: archiveError.details,
+            error: archiveError,
+          });
+          throw archiveError;
         }
       }
       router.push("/tracker");

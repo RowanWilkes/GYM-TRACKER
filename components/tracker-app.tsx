@@ -49,6 +49,7 @@ export function TrackerApp() {
       .from("days")
       .select("id, user_id, name, position, sort_order")
       .eq("user_id", uid)
+      .is("archived_at", null)
       .order("sort_order", { ascending: true, nullsFirst: false });
     if (daysError) throw daysError;
     return (data ?? []) as DayRow[];
