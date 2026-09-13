@@ -1,6 +1,9 @@
 import {
   authRedirectErrorFromLocation,
   hasRecoveryTokens,
+  isRecoveryExemptPath,
+  resetLinkErrorMessage,
+  safeNextPath,
   validateEmail,
   validateNewPassword,
 } from "../lib/passwordReset";
@@ -37,7 +40,23 @@ assertEqual(
 assertEqual(authRedirectErrorFromLocation("", ""), null, "no error params is null");
 
 assertEqual(hasRecoveryTokens("", "#access_token=abc&type=recovery"), true, "hash recovery tokens count");
-assertEqual(hasRecoveryTokens("code=abc", ""), true, "pkce code counts as recovery tokens");
+assertEqual(hasRecoveryTokens("token_hash=abc&type=recovery", ""), true, "token_hash recovery counts");
 assertEqual(hasRecoveryTokens("", ""), false, "empty url has no recovery tokens");
+
+assertEqual(isRecoveryExemptPath("/update-password"), true, "update-password is exempt");
+assertEqual(isRecoveryExemptPath("/auth/confirm"), true, "confirm route is exempt");
+assertEqual(isRecoveryExemptPath("/tracker"), false, "tracker is not exempt");
+
+assertEqual(
+  resetLinkErrorMessage("invalid_or_expired"),
+  "This reset link is invalid or has expired.",
+  "maps confirm-route error query"
+);
+assertEqual(resetLinkErrorMessage(null), null, "no reset error is null");
+
+assertEqual(safeNextPath(null), "/update-password", "missing next defaults to update-password");
+assertEqual(safeNextPath("/update-password"), "/update-password", "relative next is kept");
+assertEqual(safeNextPath("https://evil.example"), "/update-password", "absolute next is rejected");
+assertEqual(safeNextPath("//evil.example"), "/update-password", "protocol-relative next is rejected");
 
 console.log("All passwordReset tests passed.");

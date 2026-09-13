@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { hasSupabaseConfig, supabase } from "@/lib/supabase";
+import { hasRecoveryTokens, isRecoveryExemptPath } from "@/lib/passwordReset";
 import LiftLoader from "@/components/LiftLoader";
 
 export function AuthGate({
@@ -17,10 +18,12 @@ export function AuthGate({
   guestOnly?: boolean;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [ok, setOk] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+    let unsubscribe = () => {};
 
     async function run() {
       if (!hasSupabaseConfig()) {
@@ -31,6 +34,15 @@ export function AuthGate({
         router.replace("/");
         return;
       }
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((event) => {
+        if (event === "PASSWORD_RECOVERY") {
+          router.replace("/update-password");
+        }
+      });
+      unsubscribe = () => subscription.unsubscribe();
+
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -43,6 +55,20 @@ export function AuthGate({
         router.replace("/");
         return;
       }
+
+      if (isRecoveryExemptPath(pathname)) {
+        setOk(true);
+        return;
+      }
+
+      if (
+        guestOnly &&
+        hasRecoveryTokens(window.location.search, window.location.hash)
+      ) {
+        router.replace("/update-password");
+        return;
+      }
+
       const { data: profile } = await supabase
         .from("profiles")
         .select("onboarded")
@@ -67,8 +93,9 @@ export function AuthGate({
     run();
     return () => {
       cancelled = true;
+      unsubscribe();
     };
-  }, [router, requireOnboarded, redirectIfOnboarded, guestOnly]);
+  }, [router, pathname, requireOnboarded, redirectIfOnboarded, guestOnly]);
 
   if (!ok) {
     return <LiftLoader />;

@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { hasSupabaseConfig, supabase } from "@/lib/supabase";
-import { isRateLimited, routeAfterAuth } from "@/lib/auth";
+import { isRateLimited } from "@/lib/auth";
 import {
   authRedirectErrorFromLocation,
   hasRecoveryTokens,
@@ -97,14 +97,7 @@ export function UpdatePasswordForm() {
       if (updateError) {
         throw updateError;
       }
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) {
-        router.replace("/");
-        return;
-      }
-      await routeAfterAuth(router);
+      router.replace("/tracker");
     } catch (err) {
       const fallback = err instanceof Error ? err.message : "Could not update your password.";
       setError(isRateLimited(err) ? "Too many attempts. Wait a minute and try again." : fallback);

@@ -38,6 +38,30 @@ export function hasRecoveryTokens(search: string, hash: string): boolean {
   return Boolean(
     params.get("access_token") ||
       params.get("code") ||
+      params.get("token_hash") ||
       params.get("type") === "recovery"
   );
+}
+
+export function isRecoveryExemptPath(pathname: string): boolean {
+  return (
+    pathname === "/update-password" ||
+    pathname === "/auth/confirm" ||
+    pathname.startsWith("/auth/confirm/")
+  );
+}
+
+export function resetLinkErrorMessage(error: string | null): string | null {
+  if (!error) return null;
+  if (error === "invalid_or_expired") {
+    return "This reset link is invalid or has expired.";
+  }
+  return error;
+}
+
+export function safeNextPath(next: string | null | undefined): string {
+  if (!next || !next.startsWith("/") || next.startsWith("//") || next.includes("://")) {
+    return "/update-password";
+  }
+  return next;
 }

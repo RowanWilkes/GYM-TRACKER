@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { hasSupabaseConfig, supabase } from "@/lib/supabase";
 import { mapAuthError, routeAfterAuth } from "@/lib/auth";
+import { hasRecoveryTokens } from "@/lib/passwordReset";
 
 type Step = "landing" | "login" | "signup";
 
@@ -22,6 +23,7 @@ export function LoginFlow() {
 
   useEffect(() => {
     let cancelled = false;
+    let unsubscribe = () => {};
 
     async function check() {
       if (!hasSupabaseConfig()) {
@@ -29,9 +31,21 @@ export function LoginFlow() {
         return;
       }
       const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((event) => {
+        if (event === "PASSWORD_RECOVERY") {
+          router.replace("/update-password");
+        }
+      });
+      unsubscribe = () => subscription.unsubscribe();
+      const {
         data: { session },
       } = await supabase.auth.getSession();
       if (cancelled) return;
+      if (hasRecoveryTokens(window.location.search, window.location.hash)) {
+        router.replace("/update-password");
+        return;
+      }
       if (session) {
         await routeAfterAuth(router);
         return;
@@ -42,6 +56,7 @@ export function LoginFlow() {
     check();
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   }, [router]);
 

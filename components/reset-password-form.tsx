@@ -1,10 +1,10 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { hasSupabaseConfig, supabase } from "@/lib/supabase";
 import { isRateLimited } from "@/lib/auth";
-import { validateEmail } from "@/lib/passwordReset";
+import { resetLinkErrorMessage, validateEmail } from "@/lib/passwordReset";
 
 const fieldClass =
   "t-value min-h-14 rounded-2xl border border-[#2a313c] bg-[#14171c] px-4 outline-none placeholder:text-[#6b7380] focus:border-[#c9f24d]";
@@ -14,6 +14,12 @@ export function ResetPasswordForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [sentTo, setSentTo] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const message = resetLinkErrorMessage(params.get("error"));
+    if (message) setError(message);
+  }, []);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -34,7 +40,7 @@ export function ResetPasswordForm() {
 
     try {
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(trimmed, {
-        redirectTo: `${window.location.origin}/update-password`,
+        redirectTo: `${window.location.origin}/auth/confirm?next=/update-password`,
       });
       if (resetError) {
         throw resetError;
