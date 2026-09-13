@@ -43,6 +43,11 @@ export function AuthGate({
       });
       unsubscribe = () => subscription.unsubscribe();
 
+      if (hasRecoveryTokens(window.location.search, window.location.hash)) {
+        router.replace(`/update-password${window.location.search}${window.location.hash}`);
+        return;
+      }
+
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -58,14 +63,6 @@ export function AuthGate({
 
       if (isRecoveryExemptPath(pathname)) {
         setOk(true);
-        return;
-      }
-
-      if (
-        guestOnly &&
-        hasRecoveryTokens(window.location.search, window.location.hash)
-      ) {
-        router.replace("/update-password");
         return;
       }
 

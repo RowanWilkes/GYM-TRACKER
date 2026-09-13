@@ -38,14 +38,14 @@ export function LoginFlow() {
         }
       });
       unsubscribe = () => subscription.unsubscribe();
+      if (hasRecoveryTokens(window.location.search, window.location.hash)) {
+        router.replace(`/update-password${window.location.search}${window.location.hash}`);
+        return;
+      }
       const {
         data: { session },
       } = await supabase.auth.getSession();
       if (cancelled) return;
-      if (hasRecoveryTokens(window.location.search, window.location.hash)) {
-        router.replace("/update-password");
-        return;
-      }
       if (session) {
         await routeAfterAuth(router);
         return;

@@ -1,13 +1,24 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const RECOVERY_EXEMPT = ["/auth/confirm", "/update-password", "/reset-password"];
+const PUBLIC_AUTH_PATHS = ["/auth/confirm", "/update-password", "/reset-password"];
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
+function isPublicAuthPath(pathname: string): boolean {
+  return PUBLIC_AUTH_PATHS.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
+  const path = request.nextUrl.pathname;
+
+  // Recovery tokens arrive in the URL hash, so the first server render of
+  // /update-password has no cookie session. Never bounce these pages.
+  if (isPublicAuthPath(path)) {
+    return supabaseResponse;
+  }
 
   const supabase = createServerClient(url || "https://unavailable.supabase.co", anonKey || "missing", {
     cookies: {
@@ -27,25 +38,7 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const path = request.nextUrl.pathname;
-  const isRecoveryExempt = RECOVERY_EXEMPT.some(
-    (prefix) => path === prefix || path.startsWith(`${prefix}/`)
-  );
-
-  // A recovery session is authenticated. Never bounce those routes to the dashboard.
-  if (user && path === "/" && !isRecoveryExempt) {
-    const type = request.nextUrl.searchParams.get("type");
-    if (type === "recovery" || request.nextUrl.searchParams.has("token_hash")) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/update-password";
-      url.search = "";
-      return NextResponse.redirect(url);
-    }
-  }
+  await supabase.auth.getUser();
 
   return supabaseResponse;
 }

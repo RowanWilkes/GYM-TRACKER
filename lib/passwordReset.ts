@@ -30,7 +30,26 @@ function paramsFromLocation(search: string, hash: string): URLSearchParams {
 
 export function authRedirectErrorFromLocation(search: string, hash: string): string | null {
   const params = paramsFromLocation(search, hash);
-  return params.get("error_description") || params.get("error");
+  const code = params.get("error_code");
+  const error = params.get("error");
+  const description = params.get("error_description");
+  if (!code && !error && !description) return null;
+  if (
+    code === "otp_expired" ||
+    error === "access_denied" ||
+    (description && /expired|invalid/i.test(description))
+  ) {
+    return "This reset link is invalid or has expired.";
+  }
+  return description || code || error;
+}
+
+export function hashRecoveryTokens(hash: string): { access_token: string; refresh_token: string } | null {
+  const params = new URLSearchParams(hash.startsWith("#") ? hash.slice(1) : hash);
+  const access_token = params.get("access_token");
+  const refresh_token = params.get("refresh_token");
+  if (!access_token || !refresh_token) return null;
+  return { access_token, refresh_token };
 }
 
 export function hasRecoveryTokens(search: string, hash: string): boolean {
@@ -46,6 +65,7 @@ export function hasRecoveryTokens(search: string, hash: string): boolean {
 export function isRecoveryExemptPath(pathname: string): boolean {
   return (
     pathname === "/update-password" ||
+    pathname === "/reset-password" ||
     pathname === "/auth/confirm" ||
     pathname.startsWith("/auth/confirm/")
   );

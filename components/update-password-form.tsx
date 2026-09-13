@@ -7,7 +7,7 @@ import { hasSupabaseConfig, supabase } from "@/lib/supabase";
 import { isRateLimited } from "@/lib/auth";
 import {
   authRedirectErrorFromLocation,
-  hasRecoveryTokens,
+  hashRecoveryTokens,
   validateNewPassword,
 } from "@/lib/passwordReset";
 
@@ -28,12 +28,10 @@ export function UpdatePasswordForm() {
   useEffect(() => {
     let cancelled = false;
     let settled = false;
-    let timeout = 0;
 
     function finish(ok: boolean, message = "") {
       if (cancelled || settled) return;
       settled = true;
-      window.clearTimeout(timeout);
       setSessionOk(ok);
       setError(ok ? "" : message || expiredMessage);
       setChecking(false);
@@ -58,7 +56,11 @@ export function UpdatePasswordForm() {
       }
     });
 
-    supabase.auth.getSession().then(({ data: { session }, error: sessionError }) => {
+    async function resolveSession() {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
       if (cancelled) return;
       if (sessionError) {
         finish(false, sessionError.message);
@@ -68,16 +70,28 @@ export function UpdatePasswordForm() {
         finish(true);
         return;
       }
-      if (!hasRecoveryTokens(window.location.search, window.location.hash)) {
-        finish(false);
-        return;
+
+      const tokens = hashRecoveryTokens(window.location.hash);
+      if (tokens) {
+        const { data, error: setError } = await supabase.auth.setSession(tokens);
+        if (cancelled) return;
+        if (setError) {
+          finish(false, setError.message);
+          return;
+        }
+        if (data.session) {
+          finish(true);
+          return;
+        }
       }
-      timeout = window.setTimeout(() => finish(false), 4000);
-    });
+
+      finish(false);
+    }
+
+    void resolveSession();
 
     return () => {
       cancelled = true;
-      window.clearTimeout(timeout);
       subscription.unsubscribe();
     };
   }, []);
@@ -106,27 +120,26 @@ export function UpdatePasswordForm() {
   }
 
   if (checking) {
-    return (
-      <main className="mx-auto flex min-h-dvh w-full max-w-[420px] flex-col justify-center px-4 py-12">
-        <p className="t-meta">Checking your session…</p>
-      </main>
-    );
+    return <p className="t-meta">Checking your session…</p>;
   }
 
   if (!sessionOk) {
     return (
-      <main className="mx-auto flex min-h-dvh w-full max-w-[420px] flex-col justify-center px-4 py-12">
+      <>
         <h1 className="t-title leading-[1.15]">Reset link expired</h1>
         <p className="t-body mt-4">{error || expiredMessage}</p>
-        <Link href="/reset-password" className="t-meta mt-6 text-[#c4f042]!">
+        <Link
+          href="/reset-password"
+          className="t-value mt-6 grid min-h-14 place-items-center rounded-2xl bg-[#c4f042] text-[#14180a]!"
+        >
           Request a new reset link
         </Link>
-      </main>
+      </>
     );
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-[420px] flex-col justify-center px-4 py-12">
+    <>
       <h1 className="t-title leading-[1.15]">Set a new password</h1>
       <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-4">
         <label className="flex flex-col gap-2">
@@ -163,6 +176,6 @@ export function UpdatePasswordForm() {
           Back to log in
         </Link>
       </form>
-    </main>
+    </>
   );
 }

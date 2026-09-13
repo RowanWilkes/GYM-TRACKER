@@ -1,5 +1,6 @@
 import {
   authRedirectErrorFromLocation,
+  hashRecoveryTokens,
   hasRecoveryTokens,
   isRecoveryExemptPath,
   resetLinkErrorMessage,
@@ -29,21 +30,28 @@ assertEqual(validateNewPassword("longenough", "longenough"), null, "matching 8+ 
 
 assertEqual(
   authRedirectErrorFromLocation("error=access_denied&error_description=Email+link+is+invalid+or+has+expired", ""),
-  "Email link is invalid or has expired",
-  "reads error_description from the query string"
+  "This reset link is invalid or has expired.",
+  "maps expired query errors"
 );
 assertEqual(
-  authRedirectErrorFromLocation("", "#error_description=Token+has+expired&error=access_denied"),
-  "Token has expired",
-  "reads error_description from the hash"
+  authRedirectErrorFromLocation("", "#error=access_denied&error_code=otp_expired"),
+  "This reset link is invalid or has expired.",
+  "maps hash access_denied / otp_expired"
 );
 assertEqual(authRedirectErrorFromLocation("", ""), null, "no error params is null");
 
 assertEqual(hasRecoveryTokens("", "#access_token=abc&type=recovery"), true, "hash recovery tokens count");
+assertEqual(
+  JSON.stringify(hashRecoveryTokens("#access_token=aaa&refresh_token=bbb&type=recovery")),
+  JSON.stringify({ access_token: "aaa", refresh_token: "bbb" }),
+  "reads implicit hash tokens"
+);
+assertEqual(hashRecoveryTokens("#error=access_denied"), null, "error hash has no tokens");
 assertEqual(hasRecoveryTokens("token_hash=abc&type=recovery", ""), true, "token_hash recovery counts");
 assertEqual(hasRecoveryTokens("", ""), false, "empty url has no recovery tokens");
 
 assertEqual(isRecoveryExemptPath("/update-password"), true, "update-password is exempt");
+assertEqual(isRecoveryExemptPath("/reset-password"), true, "reset-password is exempt");
 assertEqual(isRecoveryExemptPath("/auth/confirm"), true, "confirm route is exempt");
 assertEqual(isRecoveryExemptPath("/tracker"), false, "tracker is not exempt");
 
