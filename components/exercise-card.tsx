@@ -8,6 +8,7 @@ import {
   equipmentLabel,
   formatLoad,
   formatLogDate,
+  formatSessionLoad,
   toSentenceCase,
 } from "@/lib/types";
 import { roundToIncrement } from "@/lib/computeSuggestion";
@@ -122,7 +123,7 @@ export function ExerciseCard({ ex, logs, today, error, onSave, onDelete }: Exerc
             {firstSession ? "Last time" : `Last time · ${formatLogDate(last.logged_at)}`}
           </span>
           <span className={`value ghost ${firstSession ? "t-meta" : "t-value"}`}>
-            {firstSession ? "first time in" : formatLoad(last.weight_kg, last.reps, last.sets)}
+            {firstSession ? "first time in" : formatSessionLoad(last.weight_kg, repsPerSetFromLog(last))}
           </span>
         </div>
         <div className="ref-row">

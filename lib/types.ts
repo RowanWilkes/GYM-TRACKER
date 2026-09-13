@@ -74,6 +74,15 @@ export function formatLoad(weight: number, reps: number, sets: number): string {
   return `${weight} kg × ${reps} × ${sets}`;
 }
 
+export function formatSessionLoad(weightKg: number, repsPerSet: number[]): string {
+  const weight = Number(weightKg);
+  const reps = repsPerSet.map(Number).filter((n) => Number.isFinite(n));
+  if (reps.length === 0) return `${weight}kg`;
+  const allEqual = reps.every((n) => n === reps[0]);
+  if (allEqual) return `${weight}kg × ${reps[0]} × ${reps.length}`;
+  return `${weight}kg × ${reps.join(",")}`;
+}
+
 export function toSentenceCase(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) return value;
