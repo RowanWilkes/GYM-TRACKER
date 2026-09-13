@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { hasSupabaseConfig, supabase } from "@/lib/supabase";
 import { mapAuthError, routeAfterAuth } from "@/lib/auth";
@@ -233,6 +234,11 @@ export function LoginFlow() {
                 className={fieldClass}
               />
             </label>
+            <div className="flex justify-end">
+              <Link href="/reset-password" className="t-meta text-[#c4f042]!">
+                Forgot password?
+              </Link>
+            </div>
             {error ? <p className="t-body text-[#ff7a6e]">{error}</p> : null}
             <button
               type="submit"
