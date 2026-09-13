@@ -136,7 +136,6 @@ export function ExerciseCard({ ex, logs, today, error, onSave, onDelete }: Exerc
       </div>
 
       <div className="editor-row">
-        <span className="t-label">Weight</span>
         <div className="stepper-pill">
           <button type="button" aria-label="Decrease weight" onClick={() => stepWeight(-1)}>
             −
@@ -157,10 +156,6 @@ export function ExerciseCard({ ex, logs, today, error, onSave, onDelete }: Exerc
             +
           </button>
         </div>
-      </div>
-
-      <div className="editor-row">
-        <span className="t-label">Reps per set</span>
         <div className="stepper-pill">
           <button
             type="button"
@@ -170,7 +165,8 @@ export function ExerciseCard({ ex, logs, today, error, onSave, onDelete }: Exerc
             −
           </button>
           <span className="stepper-count t-value">
-            {repsPerSet.length} {repsPerSet.length === 1 ? "set" : "sets"}
+            {repsPerSet.length}
+            <span className="t-meta">{repsPerSet.length === 1 ? "set" : "sets"}</span>
           </span>
           <button
             type="button"
@@ -182,27 +178,30 @@ export function ExerciseCard({ ex, logs, today, error, onSave, onDelete }: Exerc
         </div>
       </div>
 
-      <div className="rep-boxes">
-        {repsPerSet.map((value, index) => {
-          const offTarget = Number(value) !== Number(targetReps);
-          return (
-            <input
-              key={`${ex.id}-set-${index}`}
-              className={`rep-box t-value ${offTarget ? "is-off-target" : ""}`}
-              type="number"
-              inputMode="numeric"
-              step="1"
-              min="1"
-              aria-label={`Set ${index + 1} reps`}
-              value={value}
-              onChange={(e) => {
-                const next = [...repsPerSet];
-                next[index] = e.target.value;
-                setRepsPerSet(next);
-              }}
-            />
-          );
-        })}
+      <div className="rep-section">
+        <span className="t-label">Reps per set</span>
+        <div className="rep-boxes">
+          {repsPerSet.map((value, index) => {
+            const offTarget = Number(value) !== Number(targetReps);
+            return (
+              <input
+                key={`${ex.id}-set-${index}`}
+                className={`rep-box t-value ${offTarget ? "is-off-target" : ""}`}
+                type="number"
+                inputMode="numeric"
+                step="1"
+                min="1"
+                aria-label={`Set ${index + 1} reps`}
+                value={value}
+                onChange={(e) => {
+                  const next = [...repsPerSet];
+                  next[index] = e.target.value;
+                  setRepsPerSet(next);
+                }}
+              />
+            );
+          })}
+        </div>
       </div>
 
       <p className="inline-error t-body">{error || ""}</p>

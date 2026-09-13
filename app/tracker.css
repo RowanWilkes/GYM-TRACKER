@@ -542,9 +542,13 @@
 .tracker-root .editor-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
   margin-bottom: 10px;
+  min-width: 0;
+}
+
+.tracker-root .editor-row .stepper-pill {
+  flex: 1;
   min-width: 0;
 }
 
@@ -588,15 +592,32 @@
 }
 
 .tracker-root .stepper-count {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  flex: 1;
   min-width: 4.5rem;
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
 
+.tracker-root .editor-row .stepper-value {
+  flex: 1;
+}
+
+.tracker-root .rep-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+  min-width: 0;
+}
+
 .tracker-root .rep-boxes {
   display: flex;
   gap: 8px;
-  margin: 0 0 10px;
+  margin: 0;
   min-width: 0;
 }
 
