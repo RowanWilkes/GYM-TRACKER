@@ -39,6 +39,7 @@ function log(partial: Partial<LogRow> & Pick<LogRow, "logged_at">): LogRow {
 const first = todaySuggestion(ex, [], "2026-09-13");
 assertEqual(first.weightKg, 20, "No logs seeds the default working weight");
 assertEqual(first.targetReps, 5, "No logs uses rep_min as the target");
+assertEqual(first.sets, 4, "No logs defaults to 4 sets");
 assertEqual(first.message, "First session — find a working weight.", "No logs uses the first-session message");
 
 const bumped = todaySuggestion(
@@ -49,6 +50,13 @@ const bumped = todaySuggestion(
 assertEqual(bumped.weightKg, 65, "Uniform target hits hold weight for today");
 assertEqual(bumped.targetReps, 6, "Uniform target hits prefill every box with 6");
 assertEqual(bumped.sets, 4, "Prefill set count matches last session");
+
+const threeSets = todaySuggestion(
+  ex,
+  [log({ logged_at: "2026-09-10", reps_per_set: [5, 5, 5], sets: 3, target_reps: 5 })],
+  "2026-09-13"
+);
+assertEqual(threeSets.sets, 3, "After logging 3 sets, the next suggestion still uses 3");
 
 const close = todaySuggestion(
   ex,

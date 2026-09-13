@@ -116,6 +116,7 @@ assertEqual(
 const first = firstSessionSuggestion({ repMin: 8, increment: 2.5 });
 assertEqual(first.weightKg, 20, "First session uses a sane default weight");
 assertEqual(first.targetReps, 8, "First session target is rep_min");
+assertEqual(first.sets, 4, "First session defaults to 4 sets");
 assertEqual(first.message, "First session — find a working weight.", "First session message");
 
 const seeded = firstSessionSuggestion({ repMin: 8, increment: 2.5 }, 61);

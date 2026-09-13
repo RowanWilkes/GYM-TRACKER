@@ -84,7 +84,7 @@ export function firstSessionSuggestion(
   return {
     weightKg: roundToIncrement(seed, cfg.increment),
     targetReps: cfg.repMin,
-    sets: 3,
+    sets: 4,
     message: "First session — find a working weight.",
   };
 }
