@@ -14,11 +14,14 @@ export function DayTabs({ days, dayId, onSelect }: DayTabsProps) {
   const [showLeftFade, setShowLeftFade] = useState(false);
   const [showRightFade, setShowRightFade] = useState(false);
 
+  const FADE_THRESHOLD = 24; // px — ignore the ~16px peek spacer + gap so the fade only appears on real overflow
+
   const updateFades = useCallback(() => {
     const el = scrollerRef.current;
     if (!el) return;
-    setShowLeftFade(el.scrollLeft > 1);
-    setShowRightFade(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    setShowLeftFade(el.scrollLeft > FADE_THRESHOLD);
+    setShowRightFade(maxScroll - el.scrollLeft > FADE_THRESHOLD);
   }, []);
 
   useEffect(() => {
