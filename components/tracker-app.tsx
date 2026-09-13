@@ -16,6 +16,7 @@ import {
 import LiftLoader from "@/components/LiftLoader";
 import { DayTabs } from "@/components/day-tabs";
 import { ExerciseCard, type ExerciseSession } from "@/components/exercise-card";
+import { buildLogPayload } from "@/lib/logWrite";
 import {
   EQUIPMENT,
   searchExercises,
@@ -160,18 +161,6 @@ export function TrackerApp() {
   }
 
   async function saveSet(exerciseId: string, rating: Rating, session: ExerciseSession) {
-    const weightKg = Number(session.weightKg);
-    const repsPerSet = session.repsPerSet.map(Number);
-    if (
-      !Number.isFinite(weightKg) ||
-      weightKg <= 0 ||
-      repsPerSet.length < 1 ||
-      repsPerSet.some((n) => !Number.isFinite(n) || n <= 0)
-    ) {
-      updateDraft(exerciseId, { error: "Enter what you lifted first" });
-      return;
-    }
-
     const {
       data: { user },
       error: userError,
@@ -182,46 +171,74 @@ export function TrackerApp() {
       return;
     }
 
-    const loggedAt = todayISO();
-    const payload = {
-      user_id: user.id,
-      exercise_id: exerciseId,
-      logged_at: loggedAt,
-      weight_kg: weightKg,
-      reps: Math.min(...repsPerSet),
-      sets: repsPerSet.length,
+    const built = buildLogPayload({
+      userId: user.id,
+      exerciseId,
+      loggedAt: todayISO(),
+      weightKg: session.weightKg,
+      repsPerSet: session.repsPerSet,
+      targetReps: session.targetReps,
       rating,
-      reps_per_set: repsPerSet,
-      target_reps: session.targetReps,
-    };
+    });
+    if ("error" in built) {
+      updateDraft(exerciseId, { error: built.error });
+      return;
+    }
 
     setLogs((prev) => {
       const index = prev.findIndex(
-        (row) => row.exercise_id === exerciseId && row.logged_at === loggedAt
+        (row) => row.exercise_id === exerciseId && row.logged_at === built.logged_at
       );
       if (index >= 0) {
         const next = [...prev];
-        next[index] = { ...next[index], ...payload };
+        next[index] = { ...next[index], ...built };
         return next;
       }
       return [
         ...prev,
         {
-          id: `pending-${exerciseId}-${loggedAt}`,
-          ...payload,
+          id: `pending-${exerciseId}-${built.logged_at}`,
+          ...built,
         },
       ];
     });
     updateDraft(exerciseId, { error: "" });
 
-    const { error: saveError } = await supabase
+    const { data, error: saveError } = await supabase
       .from("logs")
-      .upsert(payload, { onConflict: "exercise_id,logged_at" });
+      .upsert(built, { onConflict: "exercise_id,logged_at" })
+      .select(
+        "id, user_id, exercise_id, logged_at, weight_kg, reps, sets, rating, reps_per_set, target_reps"
+      )
+      .single();
     if (saveError) {
       console.error(saveError);
-      updateDraft(exerciseId, { error: saveError.message || "Couldn't save" });
+      updateDraft(exerciseId, { error: saveError.message });
       await refreshCurrentDay();
       return;
+    }
+
+    if (data) {
+      const saved = data as LogRow;
+      setLogs((prev) => {
+        const withoutPending = prev.filter(
+          (row) =>
+            !(
+              row.exercise_id === saved.exercise_id &&
+              row.logged_at === saved.logged_at &&
+              row.id.startsWith("pending-")
+            )
+        );
+        const index = withoutPending.findIndex(
+          (row) => row.exercise_id === saved.exercise_id && row.logged_at === saved.logged_at
+        );
+        if (index >= 0) {
+          const next = [...withoutPending];
+          next[index] = saved;
+          return next;
+        }
+        return [...withoutPending, saved];
+      });
     }
 
     await refreshCurrentDay();
