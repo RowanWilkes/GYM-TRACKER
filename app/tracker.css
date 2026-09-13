@@ -49,16 +49,20 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  flex-wrap: nowrap;
   gap: 12px;
   margin-bottom: 18px;
   min-width: 0;
 }
 
+.tracker-root .topbar > :first-child {
+  min-width: 0;
+}
+
 .tracker-root .topbar-actions {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex: none;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .tracker-root .eyebrow {
@@ -97,17 +101,31 @@
   color: var(--muted);
 }
 
-.tracker-root .tabs {
-  display: flex;
-  gap: 8px;
+.tracker-root .tabs-wrap {
+  position: relative;
   position: sticky;
   top: var(--safe-top);
   z-index: 4;
   padding: 8px 0 12px;
+  background: linear-gradient(var(--bg) 70%, transparent);
+}
+
+.tracker-root .tabs {
+  display: flex;
+  gap: 8px;
   overflow-x: auto;
+  overflow-y: hidden;
   max-width: 100%;
   min-width: 0;
-  background: linear-gradient(var(--bg) 70%, transparent);
+  white-space: nowrap;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  scroll-padding-left: 40px;
+}
+
+.tracker-root .tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .tracker-root .tab {
@@ -118,6 +136,39 @@
   background: var(--bg-elev);
   flex: 1 0 auto;
   white-space: nowrap;
+  scroll-snap-align: start;
+}
+
+.tracker-root .tabs-peek {
+  flex: none;
+  width: 8px;
+  min-width: 8px;
+  pointer-events: none;
+}
+
+.tracker-root .tabs-fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms ease;
+  z-index: 1;
+}
+
+.tracker-root .tabs-fade.is-visible {
+  opacity: 1;
+}
+
+.tracker-root .tabs-fade-left {
+  left: 0;
+  background: linear-gradient(to right, var(--bg), transparent);
+}
+
+.tracker-root .tabs-fade-right {
+  right: 0;
+  background: linear-gradient(to left, var(--bg), transparent);
 }
 
 .tracker-root .tab.is-active {

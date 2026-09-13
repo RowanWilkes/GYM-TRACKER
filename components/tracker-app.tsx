@@ -18,6 +18,7 @@ import {
 } from "@/lib/types";
 import { lastLogBefore, numbersForTodaySave, suggestionForExercise } from "@/lib/sessionSuggestion";
 import LiftLoader from "@/components/LiftLoader";
+import { DayTabs } from "@/components/day-tabs";
 import {
   EQUIPMENT,
   searchExercises,
@@ -264,6 +265,29 @@ export function TrackerApp() {
         <div className="topbar-actions">
           <button
             type="button"
+            className="sign-out-chip edit-days-chip flex-none w-[38px] h-[38px] rounded-full grid place-items-center border-[0.5px] border-[#2c322f] transition hover:bg-white/5 active:scale-[0.97]"
+            aria-label="Edit training days"
+            title="Edit training days"
+            onClick={() => router.push("/training-days")}
+          >
+            <svg
+              className="sign-out-icon"
+              viewBox="0 0 24 24"
+              width="16"
+              height="16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+            </svg>
+          </button>
+          <button
+            type="button"
             className="sign-out-chip flex-none w-[38px] h-[38px] rounded-full grid place-items-center border-[0.5px] border-[#2c322f] text-[#8b928c] transition hover:border-[#3a413d] hover:text-[#c9cec9] hover:bg-white/5 active:scale-[0.97]"
             aria-label="Sign out"
             title="Sign out"
@@ -289,47 +313,13 @@ export function TrackerApp() {
               <line x1="21" x2="9" y1="12" y2="12" />
             </svg>
           </button>
-          <button
-            type="button"
-            className="sign-out-chip edit-days-chip flex-none w-[38px] h-[38px] rounded-full grid place-items-center border-[0.5px] border-[#2c322f] transition hover:bg-white/5 active:scale-[0.97]"
-            aria-label="Edit training days"
-            title="Edit training days"
-            onClick={() => router.push("/training-days")}
-          >
-            <svg
-              className="sign-out-icon"
-              viewBox="0 0 24 24"
-              width="16"
-              height="16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M12 20h9" />
-              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-            </svg>
-          </button>
         </div>
       </header>
 
       {error ? <p className="inline-error t-body">{error}</p> : null}
 
       {days.length ? (
-        <nav className="tabs" role="tablist" aria-label="Training days">
-          {days.map((day) => (
-            <button
-              key={day.id}
-              className={`tab t-body ${day.id === dayId ? "is-active" : ""}`}
-              type="button"
-              onClick={() => selectDay(day.id)}
-            >
-              {toSentenceCase(day.name)}
-            </button>
-          ))}
-        </nav>
+        <DayTabs days={days} dayId={dayId} onSelect={selectDay} />
       ) : (
         <p className="progress-note t-meta">No training days yet. Finish onboarding to add a split.</p>
       )}
