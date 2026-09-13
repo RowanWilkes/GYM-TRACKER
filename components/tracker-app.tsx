@@ -9,23 +9,20 @@ import {
   type ExerciseRow,
   type LogRow,
   type Rating,
-  equipmentLabel,
-  formatLoad,
-  formatLogDate,
   formatTodayHeader,
   todayISO,
   toSentenceCase,
 } from "@/lib/types";
-import { lastLogBefore, numbersForTodaySave, suggestionForExercise } from "@/lib/sessionSuggestion";
 import LiftLoader from "@/components/LiftLoader";
 import { DayTabs } from "@/components/day-tabs";
+import { ExerciseCard, type ExerciseSession } from "@/components/exercise-card";
 import {
   EQUIPMENT,
   searchExercises,
   type LibraryExercise,
 } from "@/src/data/exerciseLibrary";
 
-type Draft = { weight: string; reps: string; sets: string; error: string };
+type Draft = { error: string };
 
 export function TrackerApp() {
   const router = useRouter();
@@ -59,7 +56,7 @@ export function TrackerApp() {
   const loadExercisesAndLogs = useCallback(async (uid: string, selected: string) => {
     const { data: exerciseRows, error: exError } = await supabase
       .from("exercises")
-      .select("id, user_id, day_id, name, equipment, rep_min, rep_max, position")
+      .select("id, user_id, day_id, name, equipment, rep_min, rep_max, position, weight_increment")
       .eq("user_id", uid)
       .eq("day_id", selected)
       .order("position", { ascending: true });
@@ -71,7 +68,7 @@ export function TrackerApp() {
     const ids = list.map((e) => e.id);
     const { data: logRows, error: logError } = await supabase
       .from("logs")
-      .select("id, user_id, exercise_id, logged_at, weight_kg, reps, sets, rating")
+      .select("id, user_id, exercise_id, logged_at, weight_kg, reps, sets, rating, reps_per_set, target_reps")
       .eq("user_id", uid)
       .in("exercise_id", ids)
       .order("logged_at", { ascending: false });
@@ -158,22 +155,22 @@ export function TrackerApp() {
   function updateDraft(id: string, patch: Partial<Draft>) {
     setDrafts((prev) => ({
       ...prev,
-      [id]: { ...{ weight: "", reps: "", sets: "", error: "" }, ...(prev[id] ?? {}), ...patch },
+      [id]: { ...(prev[id] ?? { error: "" }), ...patch },
     }));
   }
 
-  async function saveSet(exerciseId: string, rating: Rating) {
-    const draft = drafts[exerciseId] ?? { weight: "", reps: "", sets: "", error: "" };
-    const exercise = exercises.find((row) => row.id === exerciseId) ?? null;
-    const exLogs = logsByExercise.get(exerciseId) ?? [];
-    const suggestion = exercise ? suggestionForExercise(exercise, exLogs) : null;
-    const todayLog = exLogs.find((row) => row.logged_at === today) ?? null;
-    const numbers = numbersForTodaySave(draft, suggestion, todayLog);
-    if (!numbers) {
+  async function saveSet(exerciseId: string, rating: Rating, session: ExerciseSession) {
+    const weightKg = Number(session.weightKg);
+    const repsPerSet = session.repsPerSet.map(Number);
+    if (
+      !Number.isFinite(weightKg) ||
+      weightKg <= 0 ||
+      repsPerSet.length < 1 ||
+      repsPerSet.some((n) => !Number.isFinite(n) || n <= 0)
+    ) {
       updateDraft(exerciseId, { error: "Enter what you lifted first" });
       return;
     }
-    const { weight, reps, sets } = numbers;
 
     const {
       data: { user },
@@ -181,7 +178,7 @@ export function TrackerApp() {
     } = await supabase.auth.getUser();
     if (userError || !user) {
       console.error(userError ?? "No user");
-      updateDraft(exerciseId, { error: "Couldn't save" });
+      updateDraft(exerciseId, { error: userError?.message || "You need to be signed in." });
       return;
     }
 
@@ -190,10 +187,12 @@ export function TrackerApp() {
       user_id: user.id,
       exercise_id: exerciseId,
       logged_at: loggedAt,
-      weight_kg: weight,
-      reps,
-      sets,
+      weight_kg: weightKg,
+      reps: Math.min(...repsPerSet),
+      sets: repsPerSet.length,
       rating,
+      reps_per_set: repsPerSet,
+      target_reps: session.targetReps,
     };
 
     setLogs((prev) => {
@@ -220,7 +219,7 @@ export function TrackerApp() {
       .upsert(payload, { onConflict: "exercise_id,logged_at" });
     if (saveError) {
       console.error(saveError);
-      updateDraft(exerciseId, { error: "Couldn't save" });
+      updateDraft(exerciseId, { error: saveError.message || "Couldn't save" });
       await refreshCurrentDay();
       return;
     }
@@ -341,8 +340,7 @@ export function TrackerApp() {
                   ex={ex}
                   logs={logsByExercise.get(ex.id) ?? []}
                   today={today}
-                  draft={drafts[ex.id]}
-                  onDraft={(patch) => updateDraft(ex.id, patch)}
+                  error={drafts[ex.id]?.error}
                   onSave={saveSet}
                   onDelete={deleteExercise}
                 />
@@ -405,21 +403,6 @@ function EmptyExercises({ onAdd }: { onAdd: () => void }) {
   );
 }
 
-function TrashIcon() {
-  return (
-    <svg className="delete-exercise-icon" viewBox="0 0 16 16" aria-hidden="true">
-      <path
-        d="M5.5 2.75h5M3.25 4.5h9.5M6.25 6.5v5M9.75 6.5v5M4.75 4.5l.5 8.1a1.25 1.25 0 0 0 1.25 1.15h3a1.25 1.25 0 0 0 1.25-1.15l.5-8.1"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 function BarbellIcon() {
   return (
     <svg className="barbell-icon" viewBox="0 0 88 48" aria-hidden="true">
@@ -429,161 +412,6 @@ function BarbellIcon() {
       <rect x="8" y="16" width="8" height="16" rx="3" fill="#9aa3b2" />
       <rect x="72" y="16" width="8" height="16" rx="3" fill="#9aa3b2" />
     </svg>
-  );
-}
-
-function ExerciseCard({
-  ex,
-  logs,
-  today,
-  draft,
-  onDraft,
-  onSave,
-  onDelete,
-}: {
-  ex: ExerciseRow;
-  logs: LogRow[];
-  today: string;
-  draft?: Draft;
-  onDraft: (patch: Partial<Draft>) => void;
-  onSave: (id: string, rating: Rating) => void;
-  onDelete: (id: string) => void;
-}) {
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const todayLog = logs.find((l) => l.logged_at === today) ?? null;
-  const last = lastLogBefore(logs, today);
-  const firstSession = !last;
-  const logged = Boolean(todayLog);
-  const suggestion = suggestionForExercise(ex, logs);
-
-  const weightVal = draft?.weight ?? (logged ? String(todayLog?.weight_kg) : "");
-  const repsVal = draft?.reps ?? (logged ? String(todayLog?.reps) : "");
-  const setsVal = draft?.sets ?? (logged ? String(todayLog?.sets) : "");
-
-  useEffect(() => {
-    if (!confirmDelete) return;
-    const timer = window.setTimeout(() => setConfirmDelete(false), 3000);
-    return () => window.clearTimeout(timer);
-  }, [confirmDelete]);
-
-  return (
-    <article className={`card ${logged ? "is-logged" : ""}`}>
-      <div className="card-head">
-        <div>
-          <p className="ex-name t-card">{toSentenceCase(ex.name)}</p>
-          <p className="equip-label t-label">{equipmentLabel(ex.equipment)}</p>
-        </div>
-        <div className="card-head-actions">
-          {logged ? (
-            <span className="logged-badge" aria-label="Logged">
-              ✓
-            </span>
-          ) : null}
-          <button
-            className={`delete-exercise ${confirmDelete ? "is-confirm t-label" : ""}`}
-            type="button"
-            aria-label={confirmDelete ? `Confirm delete ${ex.name}` : `Delete ${ex.name}`}
-            onClick={() => {
-              if (!confirmDelete) {
-                setConfirmDelete(true);
-                return;
-              }
-              onDelete(ex.id);
-            }}
-          >
-            {confirmDelete ? "Delete" : <TrashIcon />}
-          </button>
-        </div>
-      </div>
-      <div className="ref">
-        <div className="ref-row">
-          <span className="label t-body">
-            {firstSession ? "Last time" : `Last time · ${formatLogDate(last.logged_at)}`}
-          </span>
-          <span className={`value ghost ${firstSession ? "t-meta" : "t-value"}`}>
-            {firstSession ? "first time in" : formatLoad(last.weight_kg, last.reps, last.sets)}
-          </span>
-        </div>
-        {suggestion ? (
-          <>
-            <div className="ref-row">
-              <span className="label t-body">Suggested today</span>
-              <span className="value suggest t-value">
-                {formatLoad(suggestion.weightKg, suggestion.reps, suggestion.sets)}
-              </span>
-            </div>
-            <p className="hint t-meta">{suggestion.note}</p>
-          </>
-        ) : (
-          <p className="hint t-meta">No suggestion yet. Just record today.</p>
-        )}
-      </div>
-      <div className="inputs">
-        <label className="field">
-          <span className="t-label">kg</span>
-          <input
-            className="t-value"
-            type="number"
-            inputMode="decimal"
-            step="0.5"
-            min="0"
-            value={weightVal}
-            placeholder={logged || !suggestion ? undefined : String(suggestion.weightKg)}
-            onChange={(e) => onDraft({ weight: e.target.value })}
-          />
-        </label>
-        <label className="field">
-          <span className="t-label">Reps</span>
-          <input
-            className="t-value"
-            type="number"
-            inputMode="numeric"
-            step="1"
-            min="1"
-            value={repsVal}
-            placeholder={logged || !suggestion ? undefined : String(suggestion.reps)}
-            onChange={(e) => onDraft({ reps: e.target.value })}
-          />
-        </label>
-        <label className="field">
-          <span className="t-label">Sets</span>
-          <input
-            className="t-value"
-            type="number"
-            inputMode="numeric"
-            step="1"
-            min="1"
-            value={setsVal}
-            placeholder={logged || !suggestion ? undefined : String(suggestion.sets)}
-            onChange={(e) => onDraft({ sets: e.target.value })}
-          />
-        </label>
-      </div>
-      <p className="inline-error t-body">{draft?.error || ""}</p>
-      <div className="diff-row">
-        <button
-          className={`diff-btn easy t-value ${todayLog?.rating === "easy" ? "is-selected" : ""}`}
-          type="button"
-          onClick={() => onSave(ex.id, "easy")}
-        >
-          Easy
-        </button>
-        <button
-          className={`diff-btn ok t-value ${todayLog?.rating === "just_right" ? "is-selected" : ""}`}
-          type="button"
-          onClick={() => onSave(ex.id, "just_right")}
-        >
-          Just Right
-        </button>
-        <button
-          className={`diff-btn hard t-value ${todayLog?.rating === "hard" ? "is-selected" : ""}`}
-          type="button"
-          onClick={() => onSave(ex.id, "hard")}
-        >
-          Hard
-        </button>
-      </div>
-    </article>
   );
 }
 

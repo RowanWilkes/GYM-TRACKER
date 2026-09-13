@@ -191,7 +191,7 @@
 .tracker-root .card {
   background: var(--bg-elev);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: 14px;
   padding: 16px 16px 14px;
   min-width: 0;
 }
@@ -537,6 +537,99 @@
 
 .tracker-root .hint {
   margin-top: 8px;
+}
+
+.tracker-root .editor-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  min-width: 0;
+}
+
+.tracker-root .stepper-pill {
+  display: flex;
+  align-items: center;
+  flex: none;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg-elev-2);
+}
+
+.tracker-root .stepper-pill button {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+}
+
+.tracker-root .stepper-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  min-width: 4.5rem;
+}
+
+.tracker-root .stepper-value input {
+  width: 3.2rem;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.tracker-root .stepper-count {
+  min-width: 4.5rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.tracker-root .rep-boxes {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 10px;
+  min-width: 0;
+}
+
+.tracker-root .rep-box {
+  flex: 1;
+  min-width: 0;
+  min-height: 50px;
+  padding: 8px 4px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #0e1014;
+  color: var(--text);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.tracker-root .rep-box.is-off-target {
+  border-width: 1.5px;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.tracker-root .stepper-value input::-webkit-outer-spin-button,
+.tracker-root .stepper-value input::-webkit-inner-spin-button,
+.tracker-root .rep-box::-webkit-outer-spin-button,
+.tracker-root .rep-box::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.tracker-root .stepper-value input,
+.tracker-root .rep-box {
+  appearance: textfield;
 }
 
 .tracker-root .progress-note {

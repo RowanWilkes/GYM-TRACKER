@@ -24,6 +24,7 @@ export type ExerciseRow = {
   rep_min: number;
   rep_max: number;
   position: number;
+  weight_increment?: number | null;
 };
 
 export type LogRow = {
@@ -35,6 +36,8 @@ export type LogRow = {
   reps: number;
   sets: number;
   rating: Rating | null;
+  reps_per_set?: number[] | null;
+  target_reps?: number | null;
 };
 
 export function todayISO(date = new Date()): string {

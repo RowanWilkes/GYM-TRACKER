@@ -1,4 +1,10 @@
 import { suggestNext, type Suggestion } from "@/lib/suggestNext";
+import {
+  computeSuggestion,
+  firstSessionSuggestion,
+  prevWasHardFromLogs,
+  type NextSuggestion,
+} from "@/lib/computeSuggestion";
 import type { ExerciseRow, LogRow } from "@/lib/types";
 
 export function orderedLogs(logs: LogRow[]): LogRow[] {
@@ -40,6 +46,42 @@ export function hardStreakFromLogs(logs: LogRow[]): number {
     else break;
   }
   return streak;
+}
+
+export function incrementForExercise(ex: ExerciseRow): number {
+  const n = Number(ex.weight_increment);
+  return Number.isFinite(n) && n > 0 ? n : 2.5;
+}
+
+export function repsPerSetFromLog(log: LogRow): number[] {
+  if (Array.isArray(log.reps_per_set) && log.reps_per_set.length > 0) {
+    return log.reps_per_set.map(Number);
+  }
+  const count = Math.max(1, log.sets || 1);
+  return Array.from({ length: count }, () => log.reps);
+}
+
+export function todaySuggestion(ex: ExerciseRow, logs: LogRow[], today: string): NextSuggestion {
+  const increment = incrementForExercise(ex);
+  const prior = logs.filter((log) => log.logged_at < today);
+  const last = lastLogBefore(logs, today);
+  if (!last) {
+    return firstSessionSuggestion({ repMin: ex.rep_min || 8, increment });
+  }
+  return computeSuggestion(
+    {
+      weightKg: Number(last.weight_kg),
+      repsPerSet: repsPerSetFromLog(last),
+      targetReps: last.target_reps ?? last.reps,
+      rating: last.rating,
+    },
+    {
+      repMin: ex.rep_min || 8,
+      repMax: ex.rep_max || 12,
+      increment,
+      prevWasHard: prevWasHardFromLogs(prior),
+    }
+  );
 }
 
 export function suggestionForExercise(ex: ExerciseRow, logs: LogRow[]): Suggestion | null {
