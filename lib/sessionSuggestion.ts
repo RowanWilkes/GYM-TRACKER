@@ -3,6 +3,7 @@ import {
   computeSuggestion,
   firstSessionSuggestion,
   prevWasHardFromLogs,
+  roundToIncrement,
   type NextSuggestion,
 } from "@/lib/computeSuggestion";
 import type { ExerciseRow, LogRow } from "@/lib/types";
@@ -61,6 +62,15 @@ export function repsPerSetFromLog(log: LogRow): number[] {
   return Array.from({ length: count }, () => log.reps);
 }
 
+function suggestionCfg(ex: ExerciseRow, increment: number, prevWasHard: boolean) {
+  return {
+    repMin: ex.rep_min || 8,
+    repMax: ex.rep_max || 12,
+    increment,
+    prevWasHard,
+  };
+}
+
 export function todaySuggestion(ex: ExerciseRow, logs: LogRow[], today: string): NextSuggestion {
   const increment = incrementForExercise(ex);
   const prior = logs.filter((log) => log.logged_at < today);
@@ -75,13 +85,40 @@ export function todaySuggestion(ex: ExerciseRow, logs: LogRow[], today: string):
       targetReps: last.target_reps ?? last.reps,
       rating: last.rating,
     },
-    {
-      repMin: ex.rep_min || 8,
-      repMax: ex.rep_max || 12,
-      increment,
-      prevWasHard: prevWasHardFromLogs(prior),
-    }
+    suggestionCfg(ex, increment, prevWasHardFromLogs(prior))
   );
+}
+
+export function nextSessionSuggestion(ex: ExerciseRow, logs: LogRow[], today: string): NextSuggestion | null {
+  const todayLog = logs.find((log) => log.logged_at === today);
+  if (!todayLog?.rating) return null;
+  const increment = incrementForExercise(ex);
+  const throughToday = logs.filter((log) => log.logged_at <= today);
+  return computeSuggestion(
+    {
+      weightKg: Number(todayLog.weight_kg),
+      repsPerSet: repsPerSetFromLog(todayLog),
+      targetReps: todayLog.target_reps ?? todayLog.reps,
+      rating: todayLog.rating,
+    },
+    suggestionCfg(ex, increment, prevWasHardFromLogs(throughToday))
+  );
+}
+
+export function nextSessionDeltaTag(
+  today: { weightKg: number; targetReps: number; rating: LogRow["rating"] },
+  next: NextSuggestion,
+  increment: number
+): string {
+  if (today.rating === "hard") {
+    return next.weightKg + 0.001 < today.weightKg ? "deload" : "hold";
+  }
+  if (next.weightKg > today.weightKg + 0.001) {
+    const step = roundToIncrement(next.weightKg - today.weightKg, increment);
+    return `+${step}kg`;
+  }
+  if (next.targetReps > today.targetReps) return "+1 rep";
+  return "hold";
 }
 
 export function suggestionForExercise(ex: ExerciseRow, logs: LogRow[]): Suggestion | null {

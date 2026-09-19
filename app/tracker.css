@@ -275,6 +275,105 @@
   font-weight: var(--weight-semibold);
 }
 
+.tracker-root .logged-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.tracker-root .logged-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.tracker-root .logged-title .ex-name {
+  margin: 0;
+}
+
+.tracker-root .logged-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+.tracker-root .rating-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+}
+
+.tracker-root .rating-pill.easy {
+  background: #163226;
+  color: var(--easy);
+}
+
+.tracker-root .rating-pill.ok {
+  background: #32290f;
+  color: var(--ok);
+}
+
+.tracker-root .rating-pill.hard {
+  background: #3a1816;
+  color: var(--hard);
+}
+
+.tracker-root .edit-log {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+}
+
+.tracker-root .edit-log:hover,
+.tracker-root .edit-log:focus-visible {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+  outline: none;
+}
+
+.tracker-root .logged-next {
+  padding-top: 12px;
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.tracker-root .logged-next .value {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tracker-root .logged-next-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+}
+
+.tracker-root .logged-next-arrow {
+  color: var(--accent);
+  flex: none;
+}
+
+.tracker-root .delta-tag {
+  color: var(--muted);
+}
+
 .tracker-root .ref {
   display: grid;
   gap: 6px;

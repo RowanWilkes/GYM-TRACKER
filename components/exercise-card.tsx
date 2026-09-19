@@ -9,12 +9,15 @@ import {
   formatLoad,
   formatLogDate,
   formatSessionLoad,
+  ratingLabel,
   toSentenceCase,
 } from "@/lib/types";
 import { roundToIncrement } from "@/lib/computeSuggestion";
 import {
   incrementForExercise,
   lastLogBefore,
+  nextSessionDeltaTag,
+  nextSessionSuggestion,
   repsPerSetFromLog,
   todaySuggestion,
 } from "@/lib/sessionSuggestion";
@@ -39,13 +42,17 @@ type ExerciseCardProps = {
 
 export function ExerciseCard({ ex, logs, today, error, onSave, onDelete }: ExerciseCardProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [editing, setEditing] = useState(false);
   const todayLog = logs.find((l) => l.logged_at === today) ?? null;
   const last = lastLogBefore(logs, today);
   const firstSession = !last;
   const logged = Boolean(todayLog);
+  const isLoggedToday = Boolean(todayLog?.rating);
+  const collapsed = isLoggedToday && !editing;
   const suggestion = todaySuggestion(ex, logs, today);
   const increment = incrementForExercise(ex);
   const targetReps = todayLog?.target_reps ?? suggestion.targetReps;
+  const nextSession = nextSessionSuggestion(ex, logs, today);
 
   const seededWeight = todayLog ? String(Number(todayLog.weight_kg)) : String(suggestion.weightKg);
   const seededReps = todayLog
@@ -59,6 +66,11 @@ export function ExerciseCard({ ex, logs, today, error, onSave, onDelete }: Exerc
     setWeight(seededWeight);
     setRepsPerSet(seededReps);
   }, [ex.id, today, seededWeight, seededReps.join(",")]);
+
+  useEffect(() => {
+    setEditing(false);
+    setConfirmDelete(false);
+  }, [ex.id, today]);
 
   useEffect(() => {
     if (!confirmDelete) return;
@@ -84,7 +96,66 @@ export function ExerciseCard({ ex, logs, today, error, onSave, onDelete }: Exerc
   function save(rating: Rating) {
     const weightKg = Number(weight);
     const reps = repsPerSet.map((value) => Number(value));
+    setEditing(false);
     onSave(ex.id, rating, { weightKg, repsPerSet: reps, targetReps });
+  }
+
+  if (collapsed && todayLog && nextSession) {
+    const rating = todayLog.rating as Rating;
+    const pillClass = rating === "just_right" ? "ok" : rating;
+    const didToday = formatSessionLoad(todayLog.weight_kg, repsPerSetFromLog(todayLog));
+    const nextLoad = formatSessionLoad(
+      nextSession.weightKg,
+      Array.from({ length: nextSession.sets }, () => nextSession.targetReps)
+    );
+    const delta = nextSessionDeltaTag(
+      {
+        weightKg: Number(todayLog.weight_kg),
+        targetReps: todayLog.target_reps ?? todayLog.reps,
+        rating,
+      },
+      nextSession,
+      increment
+    );
+
+    return (
+      <article className="card is-logged">
+        <div className="logged-head">
+          <div className="logged-title">
+            <span className="logged-badge" aria-label="Logged">
+              ✓
+            </span>
+            <p className="ex-name t-card">{toSentenceCase(ex.name)}</p>
+          </div>
+          <div className="logged-head-actions">
+            <span className={`rating-pill ${pillClass} t-label`}>{ratingLabel(rating)}</span>
+            <button
+              className="edit-log"
+              type="button"
+              aria-label={`Edit ${ex.name}`}
+              onClick={() => setEditing(true)}
+            >
+              <PencilIcon />
+            </button>
+          </div>
+        </div>
+        <div className="ref-row">
+          <span className="label t-meta">You did today</span>
+          <span className="value t-value">{didToday}</span>
+        </div>
+        <div className="ref-row logged-next">
+          <span className="logged-next-label t-meta">
+            <NextSessionArrow />
+            Next session
+          </span>
+          <span className="value suggest t-value">
+            <span className="delta-tag t-meta">{delta}</span>
+            {nextLoad}
+          </span>
+        </div>
+        {error ? <p className="inline-error t-body">{error}</p> : null}
+      </article>
+    );
   }
 
   return (
@@ -229,6 +300,36 @@ export function ExerciseCard({ ex, logs, today, error, onSave, onDelete }: Exerc
         </button>
       </div>
     </article>
+  );
+}
+
+function PencilIcon() {
+  return (
+    <svg className="edit-log-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true">
+      <path d="M12 20h9" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+      <path
+        d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function NextSessionArrow() {
+  return (
+    <svg className="logged-next-arrow" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+      <path
+        d="M5 11L11 5M7 5h4v4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
