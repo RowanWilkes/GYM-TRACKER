@@ -16,7 +16,9 @@ import {
 import LiftLoader from "@/components/LiftLoader";
 import { DayTabs } from "@/components/day-tabs";
 import { ExerciseCard, type ExerciseSession } from "@/components/exercise-card";
+import { SessionRecap } from "@/components/session-recap";
 import { buildLogPayload } from "@/lib/logWrite";
+import { buildLastSessionRecap } from "@/lib/lastSession";
 import {
   EQUIPMENT,
   searchExercises,
@@ -35,6 +37,7 @@ export function TrackerApp() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showAdd, setShowAdd] = useState(false);
+  const [showLastSession, setShowLastSession] = useState(false);
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
 
   const today = todayISO();
@@ -153,6 +156,15 @@ export function TrackerApp() {
     }
     return map;
   }, [logs]);
+
+  const lastSession = useMemo(
+    () => buildLastSessionRecap(exercises, logs, today, selectedDay?.name ?? ""),
+    [exercises, logs, today, selectedDay?.name]
+  );
+
+  useEffect(() => {
+    if (!lastSession) setShowLastSession(false);
+  }, [lastSession]);
 
   function updateDraft(id: string, patch: Partial<Draft>) {
     setDrafts((prev) => ({
@@ -347,11 +359,30 @@ export function TrackerApp() {
             <EmptyExercises onAdd={() => setShowAdd(true)} />
           ) : (
             <>
-              <p className="progress-note t-meta">
-                {exercises.filter((ex) => (logsByExercise.get(ex.id) ?? []).some((l) => l.logged_at === today)).length}
-                {" of "}
-                {exercises.length} logged today
-              </p>
+              <div className="progress-row">
+                <p className="progress-note t-meta">
+                  {exercises.filter((ex) => (logsByExercise.get(ex.id) ?? []).some((l) => l.logged_at === today)).length}
+                  {" of "}
+                  {exercises.length} logged today
+                </p>
+                {lastSession ? (
+                  <button
+                    className={`last-session-btn t-label ${showLastSession ? "is-open" : ""}`}
+                    type="button"
+                    aria-expanded={showLastSession}
+                    aria-controls="last-session-recap"
+                    onClick={() => setShowLastSession((open) => !open)}
+                  >
+                    <HistoryIcon />
+                    Last session
+                  </button>
+                ) : null}
+              </div>
+              {showLastSession && lastSession ? (
+                <div id="last-session-recap">
+                  <SessionRecap session={lastSession} onClose={() => setShowLastSession(false)} />
+                </div>
+              ) : null}
               {exercises.map((ex) => (
                 <ExerciseCard
                   key={ex.id}
@@ -384,6 +415,16 @@ export function TrackerApp() {
         />
       ) : null}
     </div>
+  );
+}
+
+function HistoryIcon() {
+  return (
+    <svg className="last-session-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+      <circle cx="8" cy="8.2" r="5.2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M8 5.6v3l2 1.2" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M3.4 4.2A6.4 6.4 0 0 1 8 2.4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
   );
 }
 

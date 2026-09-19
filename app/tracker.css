@@ -752,8 +752,144 @@
   appearance: textfield;
 }
 
-.tracker-root .progress-note {
+.tracker-root .progress-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin: 0 0 12px;
+  min-width: 0;
+}
+
+.tracker-root .progress-note {
+  margin: 0;
+}
+
+.tracker-root .last-session-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  min-height: 32px;
+  padding: 0 10px 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg-elev);
+  color: var(--muted);
+}
+
+.tracker-root .last-session-btn.is-open,
+.tracker-root .last-session-btn:hover,
+.tracker-root .last-session-btn:focus-visible {
+  color: var(--text);
+  background: var(--bg-elev-2);
+  outline: none;
+}
+
+.tracker-root .last-session-icon {
+  color: var(--accent);
+  flex: none;
+}
+
+.tracker-root .session-recap {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 16px 10px;
+  margin: 0 0 12px;
+  min-width: 0;
+}
+
+.tracker-root .session-recap-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.tracker-root .session-recap-title p {
+  margin: 0;
+}
+
+.tracker-root .session-recap-title .t-meta {
+  margin-top: 4px;
+}
+
+.tracker-root .session-recap-close {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+}
+
+.tracker-root .session-recap-close:hover,
+.tracker-root .session-recap-close:focus-visible {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+  outline: none;
+}
+
+.tracker-root .session-recap-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.tracker-root .session-recap-tile {
+  background: var(--bg-elev-2);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  min-width: 0;
+}
+
+.tracker-root .session-recap-tile p {
+  margin: 0;
+}
+
+.tracker-root .session-recap-tile .t-value {
+  margin-top: 6px;
+}
+
+.tracker-root .session-recap-bests {
+  color: var(--accent);
+}
+
+.tracker-root .session-recap-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tracker-root .session-recap-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.tracker-root .session-recap-load {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.tracker-root .session-recap-trophy {
+  color: var(--accent);
+  flex: none;
 }
 
 .tracker-root .sign-out {
