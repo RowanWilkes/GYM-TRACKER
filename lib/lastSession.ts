@@ -17,11 +17,16 @@ export type RecapSession = {
   exercises: RecapExercise[];
 };
 
+export function sessionDay(loggedAt: string): string {
+  return loggedAt.slice(0, 10);
+}
+
 export function lastPriorSessionDate(logs: LogRow[], today: string): string | null {
   let latest: string | null = null;
   for (const log of logs) {
-    if (log.logged_at >= today) continue;
-    if (!latest || log.logged_at > latest) latest = log.logged_at;
+    const day = sessionDay(log.logged_at);
+    if (day > today) continue;
+    if (!latest || day > latest) latest = day;
   }
   return latest;
 }
@@ -45,9 +50,9 @@ export function buildLastSessionRecap(
   let newBestCount = 0;
   for (const ex of exercises) {
     const all = logs.filter((log) => log.exercise_id === ex.id);
-    const sessionLog = all.find((log) => log.logged_at === date);
+    const sessionLog = all.find((log) => sessionDay(log.logged_at) === date);
     if (!sessionLog) continue;
-    const earlier = all.filter((log) => log.logged_at < date);
+    const earlier = all.filter((log) => sessionDay(log.logged_at) < date);
     const isNewBest = isPersonalBest(sessionLog, earlier);
     if (isNewBest) newBestCount += 1;
     rows.push({
